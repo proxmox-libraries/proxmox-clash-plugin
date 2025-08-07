@@ -1,0 +1,27 @@
+[Unit]
+Description=Clash.Meta (mihomo) for Proxmox
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/opt/proxmox-clash/clash-meta -d /opt/proxmox-clash
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=infinity
+
+# 环境变量
+Environment=CLASH_CONFIG_DIR=/opt/proxmox-clash/config
+Environment=CLASH_EXTERNAL_CONTROLLER=127.0.0.1:9090
+Environment=CLASH_EXTERNAL_UI=/opt/proxmox-clash/dashboard
+
+# 安全设置
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/proxmox-clash
+
+[Install]
+WantedBy=multi-user.target 
