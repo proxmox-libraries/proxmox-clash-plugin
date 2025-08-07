@@ -38,7 +38,24 @@ proxmox-clash-plugin/
 
 ## 🛠️ 安装方法
 
-### 方法一：一键安装（推荐）
+### 方法一：智能版本管理安装（推荐）
+
+```bash
+# 克隆项目
+git clone https://github.com/proxmox-libraries/proxmox-clash-plugin.git
+cd proxmox-clash-plugin
+
+# 安装最新版本
+sudo bash scripts/install_with_version.sh -l
+
+# 或安装指定版本
+sudo bash scripts/install_with_version.sh -v v1.1.0
+
+# 查看可用版本
+sudo bash scripts/install_with_version.sh -c
+```
+
+### 方法二：传统安装
 
 ```bash
 # 克隆项目
@@ -181,15 +198,61 @@ sudo /opt/proxmox-clash/scripts/view_logs.sh -c    # 清空日志
 
 ## 🔄 版本升级系统
 
-插件提供了完整的版本升级功能，支持自动检测更新、一键升级和备份恢复：
+## 🔄 版本管理
 
-### 升级功能特性
+插件提供了完整的版本管理功能，结合 GitHub 进行智能版本控制：
 
-- **自动版本检测** - 从 GitHub 自动获取最新版本信息
-- **一键升级** - 支持升级到最新版本或指定版本
+### 版本管理特性
+
+- **GitHub 集成** - 直接从 GitHub Releases 获取版本信息
+- **智能缓存** - 本地缓存版本信息，减少 API 调用
+- **版本比较** - 自动比较版本号，智能提示更新
+- **多版本支持** - 支持安装、升级到任意可用版本
+- **版本详情** - 显示版本发布时间、下载次数、更新说明
 - **自动备份** - 升级前自动创建备份，确保数据安全
 - **降级支持** - 支持降级到较低版本（需确认）
 - **Web UI 集成** - 在控制面板中直接进行版本管理
+
+### 版本管理工具
+
+#### 1. 版本管理脚本
+```bash
+# 显示最新版本
+sudo /opt/proxmox-clash/scripts/version_manager.sh -l
+
+# 显示当前版本
+sudo /opt/proxmox-clash/scripts/version_manager.sh -c
+
+# 列出所有可用版本
+sudo /opt/proxmox-clash/scripts/version_manager.sh -a
+
+# 显示版本详细信息
+sudo /opt/proxmox-clash/scripts/version_manager.sh -i v1.1.0
+
+# 检查更新
+sudo /opt/proxmox-clash/scripts/version_manager.sh -u
+
+# 设置当前版本
+sudo /opt/proxmox-clash/scripts/version_manager.sh -s v1.1.0
+
+# 清理版本缓存
+sudo /opt/proxmox-clash/scripts/version_manager.sh --clear-cache
+
+# 强制刷新版本信息
+sudo /opt/proxmox-clash/scripts/version_manager.sh --refresh
+```
+
+#### 2. 智能安装脚本
+```bash
+# 安装最新版本
+sudo /opt/proxmox-clash/scripts/install_with_version.sh -l
+
+# 安装指定版本
+sudo /opt/proxmox-clash/scripts/install_with_version.sh -v v1.1.0
+
+# 查看可用版本
+sudo /opt/proxmox-clash/scripts/install_with_version.sh -c
+```
 
 ### 升级方式
 

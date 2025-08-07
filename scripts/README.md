@@ -1,124 +1,174 @@
-# Scripts 目录
+# 脚本目录
 
-这个目录包含各种管理和配置脚本。
+本目录包含 Proxmox Clash 插件的所有管理脚本。
 
-## 📁 目录内容
+## 📁 脚本列表
 
-- `install.sh` - 一键安装脚本
-- `uninstall.sh` - 卸载脚本
-- `update_subscription.sh` - 订阅更新脚本
-- `setup_transparent_proxy.sh` - 透明代理配置脚本
-- `view_logs.sh` - 日志查看工具
-- `upgrade.sh` - 版本升级脚本
+### 🔧 核心管理脚本
 
-## 🔧 脚本说明
+- **`install.sh`** - 传统安装脚本
+- **`install_with_version.sh`** - 智能版本管理安装脚本（推荐）
+- **`uninstall.sh`** - 卸载脚本
+- **`upgrade.sh`** - 版本升级脚本
+- **`version_manager.sh`** - 版本管理脚本（新增）
 
-### install.sh
-**一键安装脚本**
-- 自动下载 mihomo 内核
-- 安装 API 和 UI 插件
-- 配置 systemd 服务
-- 设置网络转发
-- 创建基础配置文件
+### 🔄 功能脚本
 
-### uninstall.sh
-**卸载脚本**
-- 停止并禁用 clash-meta 服务
-- 删除所有插件文件
-- 清理 iptables 规则
-- 删除主目录
+- **`update_subscription.sh`** - 订阅更新脚本
+- **`setup_transparent_proxy.sh`** - 透明代理配置脚本
+- **`view_logs.sh`** - 日志查看工具
 
-### update_subscription.sh
-**订阅更新脚本**
-- 支持 HTTP/HTTPS 订阅 URL
-- 自动解析 base64 编码订阅
-- 支持明文订阅格式
-- 自动重启 clash-meta 服务
+### 📂 子目录
 
-### setup_transparent_proxy.sh
-**透明代理配置脚本**
-- 配置 iptables 规则
-- 支持 TCP/UDP 透明代理
-- 自动保存 iptables 规则
-- 适用于 vmbr0/vmbr1 网桥
+- **`upgrade/`** - 升级相关文档和工具
 
-### view_logs.sh
-**日志查看工具**
-- 查看插件运行日志
-- 支持实时跟踪日志
-- 过滤错误和警告信息
-- 查看 clash-meta 服务日志
-- 提供日志文件管理功能
+## 🚀 版本管理脚本
 
-### upgrade.sh
-**版本升级脚本**
-- 检查 GitHub 最新版本
-- 支持升级到最新版本或指定版本
-- 自动创建升级前备份
-- 支持从备份恢复
-- 版本比较和降级确认
+### `version_manager.sh` - 版本管理工具
 
-## 📝 使用说明
+这是一个全新的版本管理脚本，结合 GitHub 进行智能版本控制：
 
-### 安装
+#### 主要功能
+
+- **GitHub 集成** - 直接从 GitHub Releases 获取版本信息
+- **智能缓存** - 本地缓存版本信息，减少 API 调用
+- **版本比较** - 自动比较版本号，智能提示更新
+- **多版本支持** - 支持查看、安装任意可用版本
+- **版本详情** - 显示版本发布时间、下载次数、更新说明
+
+#### 使用方法
+
 ```bash
-sudo bash scripts/install.sh
+# 显示最新版本
+sudo ./version_manager.sh -l
+
+# 显示当前版本
+sudo ./version_manager.sh -c
+
+# 列出所有可用版本
+sudo ./version_manager.sh -a
+
+# 显示版本详细信息
+sudo ./version_manager.sh -i v1.1.0
+
+# 检查更新
+sudo ./version_manager.sh -u
+
+# 设置当前版本
+sudo ./version_manager.sh -s v1.1.0
+
+# 清理版本缓存
+sudo ./version_manager.sh --clear-cache
+
+# 强制刷新版本信息
+sudo ./version_manager.sh --refresh
 ```
 
-### 卸载
+### `install_with_version.sh` - 智能安装脚本
+
+结合版本管理功能的安装脚本：
+
+#### 使用方法
+
 ```bash
-sudo bash scripts/uninstall.sh
+# 安装最新版本
+sudo ./install_with_version.sh -l
+
+# 安装指定版本
+sudo ./install_with_version.sh -v v1.1.0
+
+# 查看可用版本
+sudo ./install_with_version.sh -c
 ```
 
-### 更新订阅
-```bash
-sudo /opt/proxmox-clash/scripts/update_subscription.sh <订阅URL> [配置名称]
-```
+## 🔄 升级脚本
 
-### 配置透明代理
-```bash
-sudo /opt/proxmox-clash/scripts/setup_transparent_proxy.sh
-```
+### `upgrade.sh` - 版本升级脚本
 
-### 查看日志
-```bash
-# 基本查看
-sudo /opt/proxmox-clash/scripts/view_logs.sh
+支持自动检测更新、一键升级和备份恢复：
 
-# 实时跟踪
-sudo /opt/proxmox-clash/scripts/view_logs.sh -f
+#### 使用方法
 
-# 只显示错误
-sudo /opt/proxmox-clash/scripts/view_logs.sh -e
-
-# 显示服务日志
-sudo /opt/proxmox-clash/scripts/view_logs.sh -s
-
-# 显示所有日志
-sudo /opt/proxmox-clash/scripts/view_logs.sh -a
-```
-
-### 版本升级
 ```bash
 # 检查更新
-sudo /opt/proxmox-clash/scripts/upgrade.sh -c
+sudo ./upgrade.sh -c
 
 # 升级到最新版本
-sudo /opt/proxmox-clash/scripts/upgrade.sh -l
+sudo ./upgrade.sh -l
 
 # 升级到指定版本
-sudo /opt/proxmox-clash/scripts/upgrade.sh -v 1.1.0
+sudo ./upgrade.sh -v 1.1.0
 
 # 创建备份
-sudo /opt/proxmox-clash/scripts/upgrade.sh -b
+sudo ./upgrade.sh -b
 
 # 从备份恢复
-sudo /opt/proxmox-clash/scripts/upgrade.sh -r backup_20231201_143022
+sudo ./upgrade.sh -r backup_name
 ```
 
-## 🔒 权限要求
+## 📋 其他脚本
 
-所有脚本都需要 root 权限运行，因为它们需要：
-- 修改系统文件
-- 配置网络规则
-- 管理 systemd 服务 
+### `install.sh` - 传统安装脚本
+
+基础安装功能，适合快速部署：
+
+```bash
+sudo ./install.sh
+```
+
+### `uninstall.sh` - 卸载脚本
+
+完全移除插件：
+
+```bash
+sudo ./uninstall.sh
+```
+
+### `update_subscription.sh` - 订阅更新脚本
+
+更新 Clash 订阅：
+
+```bash
+sudo ./update_subscription.sh [订阅URL]
+```
+
+### `setup_transparent_proxy.sh` - 透明代理配置脚本
+
+配置透明代理：
+
+```bash
+sudo ./setup_transparent_proxy.sh
+```
+
+### `view_logs.sh` - 日志查看工具
+
+查看 Clash 日志：
+
+```bash
+sudo ./view_logs.sh
+```
+
+## 🔧 脚本权限
+
+所有脚本都需要执行权限：
+
+```bash
+chmod +x *.sh
+```
+
+## 📝 注意事项
+
+1. **版本管理脚本** 需要 `curl`、`jq` 等依赖工具
+2. **升级脚本** 会自动创建备份，备份保存在 `/opt/proxmox-clash/backup/`
+3. **安装脚本** 会检查系统依赖并自动安装缺失的包
+4. 所有脚本都会记录详细日志到 `/var/log/proxmox-clash.log`
+
+## 🆕 新功能
+
+### 版本管理改进
+
+- ✅ 结合 GitHub Releases 进行版本管理
+- ✅ 智能缓存机制，减少 API 调用
+- ✅ 支持查看版本详细信息和更新说明
+- ✅ 支持安装任意可用版本
+- ✅ 自动版本比较和更新提示 

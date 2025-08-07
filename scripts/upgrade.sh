@@ -64,9 +64,17 @@ get_project_version() {
 
 # 获取最新版本
 get_latest_version() {
-    log_message "INFO" "检查 GitHub 最新版本..."
+    # 使用版本管理脚本获取最新版本
+    if [ -f "$(dirname "$0")/version_manager.sh" ]; then
+        local latest_version=$("$(dirname "$0")/version_manager.sh" --latest)
+        if [ "$latest_version" != "unknown" ]; then
+            echo "$latest_version"
+            return 0
+        fi
+    fi
     
-    # 尝试从 GitHub API 获取最新版本
+    # 备用方案：直接调用 GitHub API
+    log_message "INFO" "检查 GitHub 最新版本..."
     if command -v curl >/dev/null 2>&1; then
         local response=$(curl -s "$GITHUB_API" 2>/dev/null || echo "")
         if [ -n "$response" ]; then
@@ -112,6 +120,13 @@ version_compare() {
 
 # 检查更新
 check_updates() {
+    # 使用版本管理脚本检查更新
+    if [ -f "$(dirname "$0")/version_manager.sh" ]; then
+        "$(dirname "$0")/version_manager.sh" --update
+        return $?
+    fi
+    
+    # 备用方案：原有的检查逻辑
     local current_version=$(get_current_version)
     local latest_version=$(get_latest_version)
     
