@@ -27,10 +27,45 @@ title: Proxmox Clash 插件文档
 
 ### 🛠️ 运维文档
 - [故障排除](troubleshooting/README.md) - 常见问题和解决方案
-- [脚本工具](scripts.md) - 脚本使用和管理
+- [脚本工具](scripts/) - 脚本使用和管理
   - [安装脚本](scripts/install.md) - 安装脚本说明
   - [管理脚本](scripts/management.md) - 管理脚本说明
   - [工具脚本](scripts/utils.md) - 工具脚本说明
+
+## 📋 脚本工具
+
+项目提供了完整的脚本工具集，按功能分类组织：
+
+### 📁 脚本目录结构
+```
+scripts/
+├── install/           # 安装相关脚本
+│   └── install_direct.sh
+├── management/        # 管理和维护脚本
+│   ├── upgrade.sh
+│   ├── version_manager.sh
+│   ├── uninstall.sh
+│   ├── update_subscription.sh
+│   └── view_logs.sh
+└── utils/            # 工具脚本
+    ├── setup_github_mirror.sh
+    └── setup_transparent_proxy.sh
+```
+
+### 🚀 快速安装
+```bash
+# 一键安装（推荐）
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash
+
+# 直接脚本安装
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install_direct.sh | sudo bash
+```
+
+### 🔗 快捷命令
+安装后，以下命令会被创建到 `/usr/local/bin/`：
+- `proxmox-clash-install` - 安装脚本
+- `proxmox-clash-upgrade` - 升级脚本
+- `proxmox-clash-uninstall` - 卸载脚本
 
 ## 🎯 快速导航
 
