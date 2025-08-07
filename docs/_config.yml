@@ -1,10 +1,8 @@
 # GitHub Pages 配置
-# 使用 Jekyll 主题
-
 title: Proxmox Clash 插件文档
 description: 深度集成到 Proxmox VE Web UI 的 Clash.Meta (mihomo) 原生插件
 author: Proxmox Libraries
-email: support@proxmox-libraries.org
+email: fuqiang.work@proxmox-libraries.com
 
 # 基础 URL 配置
 baseurl: "/proxmox-clash-plugin"
@@ -12,9 +10,6 @@ url: "https://proxmox-libraries.github.io"
 
 # 主题设置
 theme: jekyll-theme-cayman
-# 或者使用其他主题
-# theme: jekyll-theme-minimal
-# theme: jekyll-theme-slate
 
 # 侧边栏配置
 show_sidebar: true
@@ -35,13 +30,6 @@ exclude:
   - vendor/gems/
   - vendor/ruby/
 
-# 包含文件
-include:
-  - _pages
-  - _posts
-  - assets
-  - images
-
 # 默认布局
 defaults:
   - scope:
@@ -49,46 +37,3 @@ defaults:
       type: "pages"
     values:
       layout: "page"
-  - scope:
-      path: ""
-      type: "posts"
-    values:
-      layout: "post"
-
-# 导航
-nav:
-  - title: 首页
-    url: /
-  - title: 安装指南
-    url: /installation/
-  - title: 配置管理
-    url: /configuration/
-  - title: 开发文档
-    url: /development/
-  - title: 故障排除
-    url: /troubleshooting/
-
-# SEO 设置
-seo:
-  title: Proxmox Clash 插件文档
-  description: 深度集成到 Proxmox VE Web UI 的 Clash.Meta (mihomo) 原生插件
-  author: Proxmox Libraries
-
-# 社交媒体
-social:
-  github: proxmox-libraries
-
-# 搜索
-search: true
-
-# 目录
-toc: true
-highlighter: rouge
-markdown: kramdown
-kramdown:
-  input: GFM
-  syntax_highlighter: rouge
-  syntax_highlighter_opts:
-    block:
-      line_numbers: true
-      start_line: 1
