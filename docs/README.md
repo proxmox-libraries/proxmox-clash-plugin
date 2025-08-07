@@ -7,6 +7,7 @@
 ### 🚀 快速开始
 - [安装指南](installation/README.md) - 详细的安装步骤和配置
 - [快速配置](configuration/quick-start.md) - 快速上手指南
+- [GitHub 镜像配置](installation/github-mirror.md) - 解决下载慢的问题
 
 ### 📖 用户指南
 - [快速配置](configuration/quick-start.md) - 快速上手指南

@@ -25,6 +25,7 @@ proxmox-clash-plugin/
 │   ├── install.sh               # 安装脚本
 │   ├── install_with_version.sh  # 智能版本管理安装脚本
 │   ├── version_manager.sh       # 版本管理脚本
+│   ├── setup_github_mirror.sh   # GitHub 镜像配置脚本
 │   ├── uninstall.sh             # 卸载脚本
 │   ├── update_subscription.sh   # 订阅更新脚本
 │   ├── setup_transparent_proxy.sh # 透明代理配置
@@ -59,6 +60,22 @@ proxmox-clash-plugin/
 - 🛠️ [故障排除](docs/troubleshooting/README.md) - 常见问题解决
 
 ## 🛠️ 安装方法
+
+### 🌐 GitHub 访问优化（中国大陆用户）
+
+如果遇到 GitHub 下载慢的问题，可以先配置镜像源：
+
+```bash
+# 检查网络连接
+bash scripts/setup_github_mirror.sh -c
+
+# 设置 ghproxy 镜像（推荐）
+bash scripts/setup_github_mirror.sh -m ghproxy
+
+# 或设置其他镜像源
+bash scripts/setup_github_mirror.sh -m fastgit
+bash scripts/setup_github_mirror.sh -m cnpmjs
+```
 
 ### 方法一：智能版本管理安装（推荐）
 

@@ -36,6 +36,15 @@ echo "📝 创建日志文件..."
 touch /var/log/proxmox-clash.log
 chmod 644 /var/log/proxmox-clash.log
 
+# 检查网络连接并建议镜像配置
+echo "🌐 检查网络连接..."
+if ! curl -s --connect-timeout 5 https://github.com > /dev/null 2>&1; then
+    echo "⚠️  检测到 GitHub 访问较慢，建议配置镜像源："
+    echo "   运行: bash scripts/setup_github_mirror.sh -m ghproxy"
+    echo "   或者: bash scripts/setup_github_mirror.sh -c 检查可用镜像"
+    echo ""
+fi
+
 # 下载 mihomo 内核
 echo "⬇️ 下载 mihomo 内核..."
 MIHOMO_URL="https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-amd64"
