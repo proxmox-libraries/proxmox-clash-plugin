@@ -23,6 +23,7 @@ title: Proxmox Clash 插件文档
 
 ### 🛠️ 运维文档
 - [故障排除](troubleshooting/README.md) - 常见问题和解决方案
+- [脚本工具](scripts.md) - 脚本使用和管理
 
 ### 📋 参考文档
 - [透明代理](configuration/transparent-proxy.md) - 透明代理配置

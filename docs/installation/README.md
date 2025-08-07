@@ -29,13 +29,13 @@ git clone https://github.com/proxmox-libraries/proxmox-clash-plugin.git
 cd proxmox-clash-plugin
 
 # 安装最新版本
-sudo bash scripts/install_with_version.sh -l
+sudo bash scripts/install/install_direct.sh -l
 
 # 或安装指定版本
-sudo bash scripts/install_with_version.sh -v v1.1.0
+sudo bash scripts/install/install_direct.sh -v v1.1.0
 
 # 查看可用版本
-sudo bash scripts/install_with_version.sh -c
+sudo bash scripts/install/install_direct.sh -c
 ```
 
 ### 方法二：传统安装
@@ -46,7 +46,7 @@ git clone https://github.com/proxmox-libraries/proxmox-clash-plugin.git
 cd proxmox-clash-plugin
 
 # 运行安装脚本
-sudo bash scripts/install.sh
+sudo bash scripts/install/install_direct.sh
 ```
 
 ### 方法三：手动安装
@@ -85,14 +85,14 @@ sudo systemctl status clash-meta
 sudo netstat -tlnp | grep 9090
 
 # 检查版本
-sudo /opt/proxmox-clash/scripts/version_manager.sh -c
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -c
 ```
 
 ### 2. 配置透明代理
 
 ```bash
 # 运行透明代理配置脚本
-sudo /opt/proxmox-clash/scripts/setup_transparent_proxy.sh
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh
 ```
 
 ### 3. 添加订阅
@@ -126,7 +126,7 @@ curl -k -u root@pam:your_password \
 sudo journalctl -u clash-meta -f
 
 # 查看插件日志
-sudo /opt/proxmox-clash/scripts/view_logs.sh
+sudo /opt/proxmox-clash/scripts/management/view_logs.sh
 ```
 
 ## 🚨 常见安装问题
@@ -174,5 +174,5 @@ sudo nano /opt/proxmox-clash/config/config.yaml
 
 1. 阅读 [快速配置](../configuration/quick-start.md) 进行基础设置
 2. 查看 [Web UI 使用](../ui/README.md) 了解界面操作
-3. 学习 [脚本工具](../scripts/README.md) 进行日常管理
+3. 学习 [脚本工具](../scripts.md) 进行日常管理
 4. 遇到问题时参考 [故障排除](../troubleshooting/README.md)

@@ -17,7 +17,7 @@
 
 ### 基本语法
 ```bash
-sudo /opt/proxmox-clash/scripts/upgrade.sh [选项]
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh [选项]
 ```
 
 ### 选项说明
@@ -35,7 +35,7 @@ sudo /opt/proxmox-clash/scripts/upgrade.sh [选项]
 
 ### 检查更新
 ```bash
-sudo /opt/proxmox-clash/scripts/upgrade.sh -c
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh -c
 ```
 
 **输出示例：**
@@ -46,7 +46,7 @@ sudo /opt/proxmox-clash/scripts/upgrade.sh -c
 
 ### 升级到最新版本
 ```bash
-sudo /opt/proxmox-clash/scripts/upgrade.sh -l
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh -l
 ```
 
 **升级过程：**
@@ -61,12 +61,12 @@ sudo /opt/proxmox-clash/scripts/upgrade.sh -l
 
 ### 升级到指定版本
 ```bash
-sudo /opt/proxmox-clash/scripts/upgrade.sh -v 1.1.0
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh -v 1.1.0
 ```
 
 ### 创建备份
 ```bash
-sudo /opt/proxmox-clash/scripts/upgrade.sh -b
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh -b
 ```
 
 **备份内容：**
@@ -78,7 +78,7 @@ sudo /opt/proxmox-clash/scripts/upgrade.sh -b
 
 ### 从备份恢复
 ```bash
-sudo /opt/proxmox-clash/scripts/upgrade.sh -r backup_20231201_143022
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh -r backup_20231201_143022
 ```
 
 ## 📁 文件结构
@@ -142,7 +142,7 @@ sudo /opt/proxmox-clash/scripts/upgrade.sh -r backup_20231201_143022
    curl -s https://api.github.com
    
    # 查看详细日志
-   sudo /opt/proxmox-clash/scripts/view_logs.sh -e
+   sudo /opt/proxmox-clash/scripts/management/view_logs.sh -e
    ```
 
 2. **升级下载失败**
@@ -166,13 +166,13 @@ sudo /opt/proxmox-clash/scripts/upgrade.sh -r backup_20231201_143022
 
 1. **从备份恢复**
    ```bash
-   sudo /opt/proxmox-clash/scripts/upgrade.sh -r backup_20231201_143022
+   sudo /opt/proxmox-clash/scripts/management/upgrade.sh -r backup_20231201_143022
    ```
 
 2. **重新安装**
    ```bash
-   sudo /opt/proxmox-clash/scripts/uninstall.sh
-   sudo bash scripts/install.sh
+   sudo /opt/proxmox-clash/scripts/management/uninstall.sh
+   sudo bash scripts/install/install_direct.sh
    ```
 
 ## 📞 技术支持

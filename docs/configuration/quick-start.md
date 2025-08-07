@@ -43,14 +43,14 @@ sudo systemctl enable clash-meta
 
 ```bash
 # 更新订阅
-sudo /opt/proxmox-clash/scripts/update_subscription.sh "您的订阅URL"
+sudo /opt/proxmox-clash/scripts/management/update_subscription.sh "您的订阅URL"
 ```
 
 ### 3. 配置透明代理
 
 ```bash
 # 运行透明代理配置脚本
-sudo /opt/proxmox-clash/scripts/setup_transparent_proxy.sh
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh
 ```
 
 ### 4. 测试连接
@@ -188,7 +188,7 @@ sudo ufw allow 9090
 sudo iptables -t nat -L PREROUTING
 
 # 重新配置透明代理
-sudo /opt/proxmox-clash/scripts/setup_transparent_proxy.sh
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh
 ```
 
 ## 📚 下一步
@@ -197,7 +197,7 @@ sudo /opt/proxmox-clash/scripts/setup_transparent_proxy.sh
 
 1. 阅读 [配置管理](README.md) 了解高级配置选项
 2. 查看 [Web UI 使用](../ui/README.md) 学习界面操作
-3. 学习 [脚本工具](../scripts/README.md) 进行日常管理
+3. 学习 [脚本工具](../scripts.md) 进行日常管理
 4. 遇到问题时参考 [故障排除](../troubleshooting/README.md)
 
 ## 🔗 相关链接

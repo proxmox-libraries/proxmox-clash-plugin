@@ -125,7 +125,7 @@ CT/VM 中的网络流量没有通过代理，直连访问。
 sudo iptables -t nat -L PREROUTING
 
 # 2. 重新配置透明代理
-sudo /opt/proxmox-clash/scripts/setup_transparent_proxy.sh
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh
 
 # 3. 检查网桥配置
 sudo ip link show vmbr0
@@ -159,7 +159,7 @@ curl -I https://www.google.com
 curl -L "您的订阅URL"
 
 # 3. 手动更新订阅
-sudo /opt/proxmox-clash/scripts/update_subscription.sh "订阅URL"
+sudo /opt/proxmox-clash/scripts/management/update_subscription.sh "订阅URL"
 
 # 4. 检查订阅文件
 ls -la /opt/proxmox-clash/config/
@@ -198,7 +198,7 @@ sudo nano /opt/proxmox-clash/config/config.yaml
 # 使用更快的 DNS 服务器
 
 # 5. 检查日志中的错误
-sudo /opt/proxmox-clash/scripts/view_logs.sh -e
+sudo /opt/proxmox-clash/scripts/management/view_logs.sh -e
 ```
 
 #### 常见原因
@@ -213,10 +213,10 @@ sudo /opt/proxmox-clash/scripts/view_logs.sh -e
 
 ```bash
 # 查看实时日志
-sudo /opt/proxmox-clash/scripts/view_logs.sh -f
+sudo /opt/proxmox-clash/scripts/management/view_logs.sh -f
 
 # 查看错误日志
-sudo /opt/proxmox-clash/scripts/view_logs.sh -e
+sudo /opt/proxmox-clash/scripts/management/view_logs.sh -e
 
 # 查看服务日志
 sudo journalctl -u clash-meta -f

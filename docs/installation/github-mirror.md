@@ -16,7 +16,7 @@
 
 ```bash
 # 检查当前网络连接状态
-bash scripts/setup_github_mirror.sh -c
+bash scripts/utils/setup_github_mirror.sh -c
 ```
 
 ### 2. 配置镜像源
@@ -25,24 +25,24 @@ bash scripts/setup_github_mirror.sh -c
 
 ```bash
 # 设置 ghproxy 镜像（推荐）
-bash scripts/setup_github_mirror.sh -m ghproxy
+bash scripts/utils/setup_github_mirror.sh -m ghproxy
 ```
 
 #### 备选方案
 
 ```bash
 # 设置 fastgit 镜像
-bash scripts/setup_github_mirror.sh -m fastgit
+bash scripts/utils/setup_github_mirror.sh -m fastgit
 
 # 设置 cnpmjs 镜像
-bash scripts/setup_github_mirror.sh -m cnpmjs
+bash scripts/utils/setup_github_mirror.sh -m cnpmjs
 ```
 
 ### 3. 重置配置
 
 ```bash
 # 重置为原始 GitHub 地址
-bash scripts/setup_github_mirror.sh -r
+bash scripts/utils/setup_github_mirror.sh -r
 ```
 
 ## 📋 支持的镜像源
@@ -79,24 +79,24 @@ bash scripts/setup_github_mirror.sh -r
 
 ```bash
 # 1. 检查网络状态
-bash scripts/setup_github_mirror.sh -c
+bash scripts/utils/setup_github_mirror.sh -c
 
 # 2. 配置镜像源
-bash scripts/setup_github_mirror.sh -m ghproxy
+bash scripts/utils/setup_github_mirror.sh -m ghproxy
 
 # 3. 安装插件
-sudo bash scripts/install.sh
+sudo bash scripts/install/install_direct.sh
 
 # 4. 或使用版本管理安装
-sudo bash scripts/install_with_version.sh -l
+sudo bash scripts/install/install_direct.sh -l
 ```
 
 ### 版本管理使用
 
 ```bash
 # 配置镜像后，版本管理脚本会自动使用镜像
-sudo /opt/proxmox-clash/scripts/version_manager.sh -l
-sudo /opt/proxmox-clash/scripts/version_manager.sh -u
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -l
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -u
 ```
 
 ## ⚠️ 注意事项
@@ -116,7 +116,7 @@ curl -I https://ghproxy.com/
 curl -I https://download.fastgit.org/
 
 # 尝试其他镜像源
-bash scripts/setup_github_mirror.sh -m fastgit
+bash scripts/utils/setup_github_mirror.sh -m fastgit
 ```
 
 ### Git 配置冲突
@@ -126,7 +126,7 @@ bash scripts/setup_github_mirror.sh -m fastgit
 git config --global --list | grep url
 
 # 重置配置
-bash scripts/setup_github_mirror.sh -r
+bash scripts/utils/setup_github_mirror.sh -r
 ```
 
 ### 依赖下载失败

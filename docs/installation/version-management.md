@@ -23,42 +23,42 @@ Proxmox Clash 插件提供了完整的版本管理功能，结合 GitHub 进行�
 
 ```bash
 # 显示最新版本
-sudo /opt/proxmox-clash/scripts/version_manager.sh -l
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -l
 
 # 显示当前版本
-sudo /opt/proxmox-clash/scripts/version_manager.sh -c
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -c
 
 # 列出所有可用版本
-sudo /opt/proxmox-clash/scripts/version_manager.sh -a
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -a
 
 # 显示版本详细信息
-sudo /opt/proxmox-clash/scripts/version_manager.sh -i v1.1.0
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -i v1.1.0
 
 # 检查更新
-sudo /opt/proxmox-clash/scripts/version_manager.sh -u
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -u
 
 # 设置当前版本
-sudo /opt/proxmox-clash/scripts/version_manager.sh -s v1.1.0
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -s v1.1.0
 
 # 清理版本缓存
-sudo /opt/proxmox-clash/scripts/version_manager.sh --clear-cache
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh --clear-cache
 
 # 强制刷新版本信息
-sudo /opt/proxmox-clash/scripts/version_manager.sh --refresh
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh --refresh
 ```
 
 #### 高级用法
 
 ```bash
 # 获取版本详细信息（JSON 格式）
-sudo /opt/proxmox-clash/scripts/version_manager.sh -i v1.1.0 | jq '.'
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -i v1.1.0 | jq '.'
 
 # 检查特定版本是否可用
-sudo /opt/proxmox-clash/scripts/version_manager.sh -a | grep v1.1.0
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -a | grep v1.1.0
 
 # 比较两个版本
-version1=$(sudo /opt/proxmox-clash/scripts/version_manager.sh -c)
-version2=$(sudo /opt/proxmox-clash/scripts/version_manager.sh -l)
+version1=$(sudo /opt/proxmox-clash/scripts/management/version_manager.sh -c)
+version2=$(sudo /opt/proxmox-clash/scripts/management/version_manager.sh -l)
 echo "当前版本: $version1, 最新版本: $version2"
 ```
 
@@ -70,16 +70,16 @@ echo "当前版本: $version1, 最新版本: $version2"
 
 ```bash
 # 安装最新版本
-sudo /opt/proxmox-clash/scripts/install_with_version.sh -l
+sudo /opt/proxmox-clash/scripts/install/install_direct.sh -l
 
 # 安装指定版本
-sudo /opt/proxmox-clash/scripts/install_with_version.sh -v v1.1.0
+sudo /opt/proxmox-clash/scripts/install/install_direct.sh -v v1.1.0
 
 # 查看可用版本
-sudo /opt/proxmox-clash/scripts/install_with_version.sh -c
+sudo /opt/proxmox-clash/scripts/install/install_direct.sh -c
 
 # 检查依赖
-sudo /opt/proxmox-clash/scripts/install_with_version.sh --check-deps
+sudo /opt/proxmox-clash/scripts/install/install_direct.sh --check-deps
 ```
 
 ## 🔄 升级流程
@@ -88,31 +88,31 @@ sudo /opt/proxmox-clash/scripts/install_with_version.sh --check-deps
 
 ```bash
 # 检查是否有可用更新
-sudo /opt/proxmox-clash/scripts/upgrade.sh -c
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh -c
 ```
 
 ### 2. 创建备份
 
 ```bash
 # 升级前创建备份
-sudo /opt/proxmox-clash/scripts/upgrade.sh -b
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh -b
 ```
 
 ### 3. 执行升级
 
 ```bash
 # 升级到最新版本
-sudo /opt/proxmox-clash/scripts/upgrade.sh -l
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh -l
 
 # 升级到指定版本
-sudo /opt/proxmox-clash/scripts/upgrade.sh -v v1.1.0
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh -v v1.1.0
 ```
 
 ### 4. 验证升级
 
 ```bash
 # 检查版本
-sudo /opt/proxmox-clash/scripts/version_manager.sh -c
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -c
 
 # 检查服务状态
 sudo systemctl status clash-meta
@@ -146,10 +146,10 @@ sudo systemctl status clash-meta
 
 ```bash
 # 清理缓存
-sudo /opt/proxmox-clash/scripts/version_manager.sh --clear-cache
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh --clear-cache
 
 # 强制刷新
-sudo /opt/proxmox-clash/scripts/version_manager.sh --refresh
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh --refresh
 
 # 查看缓存状态
 ls -la /opt/proxmox-clash/cache/
@@ -163,7 +163,7 @@ ls -la /opt/proxmox-clash/cache/
 
 ```bash
 # 编辑版本管理脚本
-sudo nano /opt/proxmox-clash/scripts/version_manager.sh
+sudo nano /opt/proxmox-clash/scripts/management/version_manager.sh
 
 # 修改缓存过期时间（秒）
 CACHE_EXPIRY=3600  # 1小时
@@ -191,16 +191,16 @@ curl -s https://api.github.com/repos/proxmox-libraries/proxmox-clash-plugin/rele
 which curl jq
 
 # 清理缓存重试
-sudo /opt/proxmox-clash/scripts/version_manager.sh --clear-cache
-sudo /opt/proxmox-clash/scripts/version_manager.sh --refresh
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh --clear-cache
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh --refresh
 ```
 
 ### 2. 版本比较错误
 
 ```bash
 # 检查版本格式
-sudo /opt/proxmox-clash/scripts/version_manager.sh -c
-sudo /opt/proxmox-clash/scripts/version_manager.sh -l
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -c
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -l
 
 # 手动比较版本
 echo "1.0.0" | sort -V
@@ -214,7 +214,7 @@ echo "1.1.0" | sort -V
 ls -la /opt/proxmox-clash/backup/
 
 # 从备份恢复
-sudo /opt/proxmox-clash/scripts/upgrade.sh -r backup_name
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh -r backup_name
 
 # 查看升级日志
 sudo journalctl -u clash-meta -f
@@ -226,22 +226,22 @@ sudo journalctl -u clash-meta -f
 
 ```bash
 # 添加到 crontab
-echo "0 2 * * * /opt/proxmox-clash/scripts/version_manager.sh -u" | sudo crontab -
+echo "0 2 * * * /opt/proxmox-clash/scripts/management/version_manager.sh -u" | sudo crontab -
 ```
 
 ### 2. 升级前备份
 
 ```bash
 # 升级前总是创建备份
-sudo /opt/proxmox-clash/scripts/upgrade.sh -b
-sudo /opt/proxmox-clash/scripts/upgrade.sh -l
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh -b
+sudo /opt/proxmox-clash/scripts/management/upgrade.sh -l
 ```
 
 ### 3. 测试环境验证
 
 ```bash
 # 在测试环境先验证新版本
-sudo /opt/proxmox-clash/scripts/install_with_version.sh -v v1.1.0
+sudo /opt/proxmox-clash/scripts/install/install_direct.sh -v v1.1.0
 # 测试功能正常后再在生产环境升级
 ```
 
@@ -250,4 +250,4 @@ sudo /opt/proxmox-clash/scripts/install_with_version.sh -v v1.1.0
 - [安装指南](README.md) - 完整安装流程
 - [升级指南](upgrade.md) - 详细升级说明
 - [故障排除](../troubleshooting/README.md) - 常见问题解决
-- [脚本工具](../scripts/README.md) - 管理脚本使用
+- [脚本工具](../scripts.md) - 管理脚本使用
