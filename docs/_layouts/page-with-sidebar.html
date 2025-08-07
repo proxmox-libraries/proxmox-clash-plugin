@@ -4,7 +4,7 @@ layout: page
 
 <div class="page-content">
   <div class="wrapper">
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
       <nav class="sidebar-nav">
         <h3>文档导航</h3>
         <ul>
@@ -21,6 +21,11 @@ layout: page
     </div>
   </div>
 </div>
+
+<!-- 移动端菜单按钮 -->
+<button class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleSidebar()">
+  ☰
+</button>
 
 <style>
 .page-content {
@@ -41,12 +46,15 @@ layout: page
   position: fixed;
   height: 100vh;
   overflow-y: auto;
+  z-index: 1000;
+  transition: transform 0.3s ease;
 }
 
 .main-content {
   flex: 1;
   margin-left: 250px;
   padding: 20px;
+  transition: margin-left 0.3s ease;
 }
 
 .sidebar-nav h3 {
@@ -79,13 +87,88 @@ layout: page
   background-color: #e1e4e8;
 }
 
+/* 移动端菜单按钮 */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1001;
+  background: #0366d6;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* 响应式设计 */
 @media (max-width: 768px) {
   .sidebar {
-    display: none;
+    transform: translateX(-100%);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
   }
   
   .main-content {
     margin-left: 0;
   }
+  
+  .mobile-menu-toggle {
+    display: block;
+  }
+}
+
+/* 滚动条样式 */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 </style>
+
+<script>
+// 移动端菜单切换
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.toggle('open');
+}
+
+// 点击主内容区域时关闭侧边栏（移动端）
+document.addEventListener('DOMContentLoaded', function() {
+  const mainContent = document.querySelector('.main-content');
+  const sidebar = document.getElementById('sidebar');
+  
+  mainContent.addEventListener('click', function() {
+    if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+      sidebar.classList.remove('open');
+    }
+  });
+  
+  // 当前页面高亮
+  const currentPath = window.location.pathname;
+  const navLinks = document.querySelectorAll('.sidebar-nav a');
+  
+  navLinks.forEach(link => {
+    if (link.getAttribute('href') === currentPath) {
+      link.style.backgroundColor = '#0366d6';
+      link.style.color = 'white';
+    }
+  });
+});
+</script>
