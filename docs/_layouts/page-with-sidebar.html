@@ -6,49 +6,13 @@ layout: page
   <div class="wrapper">
     <div class="sidebar">
       <nav class="sidebar-nav">
-        <div class="sidebar-header">
-          <h3>文档导航</h3>
-        </div>
-        <ul class="nav-menu">
-          <li class="nav-item">
-            <a href="/" class="nav-link">🏠 首页</a>
-          </li>
-          
-          <li class="nav-item">
-            <a href="/installation/" class="nav-link">📦 安装指南</a>
-            <ul class="sub-menu">
-              <li><a href="/installation/README.md">基础安装</a></li>
-              <li><a href="/installation/version-management.md">版本管理</a></li>
-              <li><a href="/installation/github-mirror.md">镜像配置</a></li>
-            </ul>
-          </li>
-          
-          <li class="nav-item">
-            <a href="/configuration/" class="nav-link">⚙️ 配置管理</a>
-            <ul class="sub-menu">
-              <li><a href="/configuration/quick-start.md">快速配置</a></li>
-              <li><a href="/configuration/transparent-proxy.md">透明代理</a></li>
-              <li><a href="/configuration/subscription.md">订阅管理</a></li>
-            </ul>
-          </li>
-          
-          <li class="nav-item">
-            <a href="/development/" class="nav-link">🔧 开发文档</a>
-            <ul class="sub-menu">
-              <li><a href="/development/README.md">开发指南</a></li>
-              <li><a href="/api/README.md">API 文档</a></li>
-              <li><a href="/ui/README.md">UI 开发</a></li>
-            </ul>
-          </li>
-          
-          <li class="nav-item">
-            <a href="/troubleshooting/" class="nav-link">🛠️ 故障排除</a>
-            <ul class="sub-menu">
-              <li><a href="/troubleshooting/README.md">常见问题</a></li>
-              <li><a href="/troubleshooting/logs.md">日志分析</a></li>
-              <li><a href="/troubleshooting/performance.md">性能优化</a></li>
-            </ul>
-          </li>
+        <h3>文档导航</h3>
+        <ul>
+          <li><a href="/">🏠 首页</a></li>
+          <li><a href="/installation/">📦 安装指南</a></li>
+          <li><a href="/configuration/">⚙️ 配置管理</a></li>
+          <li><a href="/development/">🔧 开发文档</a></li>
+          <li><a href="/troubleshooting/">🛠️ 故障排除</a></li>
         </ul>
       </nav>
     </div>
@@ -70,184 +34,58 @@ layout: page
 }
 
 .sidebar {
-  width: 280px;
+  width: 250px;
   background: #f8f9fa;
   border-right: 1px solid #e1e4e8;
+  padding: 20px;
   position: fixed;
   height: 100vh;
   overflow-y: auto;
-  z-index: 1000;
 }
 
-.sidebar-header {
-  padding: 20px 20px 10px 20px;
-  border-bottom: 1px solid #e1e4e8;
+.main-content {
+  flex: 1;
+  margin-left: 250px;
+  padding: 20px;
 }
 
-.sidebar-header h3 {
-  margin: 0;
+.sidebar-nav h3 {
+  margin: 0 0 20px 0;
   color: #24292e;
   font-size: 16px;
   font-weight: 600;
 }
 
-.nav-menu {
+.sidebar-nav ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.nav-item {
-  margin: 0;
+.sidebar-nav li {
+  margin-bottom: 10px;
 }
 
-.nav-link {
+.sidebar-nav a {
   display: block;
-  padding: 12px 20px;
+  padding: 8px 12px;
   color: #24292e;
   text-decoration: none;
-  font-weight: 500;
-  border-bottom: 1px solid #f1f3f4;
-  transition: all 0.2s ease;
+  border-radius: 6px;
+  transition: background-color 0.2s;
 }
 
-.nav-link:hover {
+.sidebar-nav a:hover {
   background-color: #e1e4e8;
-  color: #0366d6;
 }
 
-.nav-link.active {
-  background-color: #0366d6;
-  color: white;
-}
-
-.sub-menu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  background: #ffffff;
-  border-left: 3px solid #e1e4e8;
-}
-
-.sub-menu li {
-  margin: 0;
-}
-
-.sub-menu a {
-  display: block;
-  padding: 8px 20px 8px 40px;
-  color: #586069;
-  text-decoration: none;
-  font-size: 14px;
-  border-bottom: 1px solid #f1f3f4;
-  transition: all 0.2s ease;
-}
-
-.sub-menu a:hover {
-  background-color: #f6f8fa;
-  color: #0366d6;
-}
-
-.sub-menu a.active {
-  background-color: #f1f8ff;
-  color: #0366d6;
-  border-left: 3px solid #0366d6;
-}
-
-.main-content {
-  flex: 1;
-  margin-left: 280px;
-  padding: 30px;
-  max-width: calc(100% - 280px);
-}
-
-/* 响应式设计 */
 @media (max-width: 768px) {
   .sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  
-  .sidebar.open {
-    transform: translateX(0);
+    display: none;
   }
   
   .main-content {
     margin-left: 0;
-    max-width: 100%;
   }
-  
-  /* 添加移动端菜单按钮 */
-  .mobile-menu-toggle {
-    display: block;
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 1001;
-    background: #0366d6;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-}
-
-@media (min-width: 769px) {
-  .mobile-menu-toggle {
-    display: none;
-  }
-}
-
-/* 滚动条样式 */
-.sidebar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.sidebar::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-.sidebar::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
 }
 </style>
-
-<script>
-// 当前页面高亮
-document.addEventListener('DOMContentLoaded', function() {
-  const currentPath = window.location.pathname;
-  const navLinks = document.querySelectorAll('.nav-link, .sub-menu a');
-  
-  navLinks.forEach(link => {
-    if (link.getAttribute('href') === currentPath) {
-      link.classList.add('active');
-      // 如果是子菜单项，展开父菜单
-      const parentItem = link.closest('.nav-item');
-      if (parentItem) {
-        parentItem.classList.add('active');
-      }
-    }
-  });
-});
-
-// 移动端菜单切换
-function toggleMobileMenu() {
-  const sidebar = document.querySelector('.sidebar');
-  sidebar.classList.toggle('open');
-}
-
-// 添加移动端菜单按钮
-if (window.innerWidth <= 768) {
-  const toggleBtn = document.createElement('button');
-  toggleBtn.className = 'mobile-menu-toggle';
-  toggleBtn.innerHTML = '☰';
-  toggleBtn.onclick = toggleMobileMenu;
-  document.body.appendChild(toggleBtn);
-}
-</script>
