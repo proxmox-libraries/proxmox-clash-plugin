@@ -1,3 +1,8 @@
+---
+layout: page
+title: 安装脚本
+---
+
 # 安装脚本
 
 这个目录包含 Proxmox Clash 插件的安装相关脚本。

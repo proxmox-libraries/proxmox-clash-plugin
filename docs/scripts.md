@@ -69,9 +69,9 @@ bash scripts/utils/setup_github_mirror.sh -m ghproxy
 
 ## 📖 详细文档
 
-- [安装脚本说明](install/README.md)
-- [管理脚本说明](management/README.md)
-- [工具脚本说明](utils/README.md)
+- [安装脚本说明](scripts/install.md)
+- [管理脚本说明](scripts/management.md)
+- [工具脚本说明](scripts/utils.md)
 
 ## 🔗 快捷命令
 

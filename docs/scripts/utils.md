@@ -1,3 +1,8 @@
+---
+layout: page
+title: 工具脚本
+---
+
 # 工具脚本
 
 这个目录包含 Proxmox Clash 插件的辅助工具脚本。

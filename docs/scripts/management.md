@@ -1,3 +1,8 @@
+---
+layout: page
+title: 管理脚本
+---
+
 # 管理脚本
 
 这个目录包含 Proxmox Clash 插件的管理和维护脚本。
