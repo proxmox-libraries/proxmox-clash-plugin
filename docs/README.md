@@ -1,3 +1,8 @@
+---
+layout: page
+title: Proxmox Clash 插件文档
+---
+
 # Proxmox Clash 插件文档
 
 欢迎使用 Proxmox Clash 插件文档！这是一个深度集成到 Proxmox VE Web UI 的 Clash.Meta (mihomo) 原生插件。

@@ -7,14 +7,13 @@ author: Proxmox Libraries
 email: support@proxmox-libraries.org
 
 # 主题设置
-remote_theme: pages-themes/cayman@v0.2.0
+theme: jekyll-theme-cayman
 # 或者使用其他主题
-# remote_theme: pages-themes/minimal@v0.2.0
-# remote_theme: pages-themes/slate@v0.2.0
+# theme: jekyll-theme-minimal
+# theme: jekyll-theme-slate
 
 # 插件
 plugins:
-  - jekyll-remote-theme
   - jekyll-relative-links
   - jekyll-seo-tag
   - jekyll-sitemap
