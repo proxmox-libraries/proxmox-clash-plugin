@@ -36,9 +36,13 @@ jobs:
         cd docs
         bundle install
         bundle exec jekyll build --destination ../_site
+        echo "Build completed. Contents of _site:"
+        ls -la ../_site
         
     - name: Setup Pages
       uses: actions/configure-pages@v4
+      with:
+        enablement: true
       
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
