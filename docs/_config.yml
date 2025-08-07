@@ -34,8 +34,6 @@ include:
   - _posts
   - assets
   - images
-  - *.md
-  - *.html
 
 # 默认布局
 defaults:

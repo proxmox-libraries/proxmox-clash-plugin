@@ -1,6 +1,7 @@
 source "https://rubygems.org"
 
-gem "jekyll", "~> 4.3.0"
+# GitHub Pages 兼容的 Jekyll 版本
+gem "github-pages", group: :jekyll_plugins
 gem "jekyll-theme-cayman", "~> 0.2.0"
 
 group :jekyll_plugins do
