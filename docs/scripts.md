@@ -7,20 +7,16 @@
 ```
 scripts/
 ├── install/           # 安装相关脚本
-│   ├── install_direct.sh
-│   └── README.md
+│   └── install_direct.sh
 ├── management/        # 管理和维护脚本
 │   ├── upgrade.sh
 │   ├── version_manager.sh
 │   ├── uninstall.sh
 │   ├── update_subscription.sh
-│   ├── view_logs.sh
-│   └── README.md
-├── utils/            # 工具脚本
-│   ├── setup_github_mirror.sh
-│   ├── setup_transparent_proxy.sh
-│   └── README.md
-└── README.md         # 本文件
+│   └── view_logs.sh
+└── utils/            # 工具脚本
+    ├── setup_github_mirror.sh
+    └── setup_transparent_proxy.sh
 ```
 
 ## 🚀 快速开始

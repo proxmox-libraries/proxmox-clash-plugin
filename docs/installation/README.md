@@ -19,6 +19,17 @@ title: 安装指南
 - **操作系统**: Debian 11+ 或 Ubuntu 20.04+
 - **依赖工具**: curl, wget, jq, tar
 
+## 📁 目录结构
+
+### clash-meta 目录
+- 存放 mihomo 可执行文件
+- 存放相关的内核文件
+- 安装脚本会自动下载并放置 mihomo 内核到此目录
+
+### service 目录
+- 包含 systemd 服务配置文件
+- `clash-meta.service` - Clash.Meta systemd 服务文件
+
 ## 🚀 安装方法
 
 ### 方法一：智能版本管理安装（推荐）

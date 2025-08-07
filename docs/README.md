@@ -15,19 +15,22 @@ title: Proxmox Clash 插件文档
 - [GitHub 镜像配置](installation/github-mirror.md) - 解决下载慢的问题
 
 ### 📖 用户指南
-- [快速配置](configuration/quick-start.md) - 快速上手指南
 - [版本管理](installation/version-management.md) - 版本管理功能详解
+- [升级指南](installation/upgrade.md) - 插件升级方法
+- [服务管理](installation/service.md) - systemd 服务配置
 
 ### 🔧 开发文档
 - [开发指南](development/README.md) - 开发环境搭建和贡献指南
+- [API 文档](development/api.md) - API 接口说明
+- [UI 开发](development/ui.md) - 前端界面开发
+- [架构设计](development/architecture.md) - 系统架构说明
 
 ### 🛠️ 运维文档
 - [故障排除](troubleshooting/README.md) - 常见问题和解决方案
 - [脚本工具](scripts.md) - 脚本使用和管理
-
-### 📋 参考文档
-- [透明代理](configuration/transparent-proxy.md) - 透明代理配置
-- [订阅管理](configuration/subscription.md) - 订阅更新和管理
+  - [安装脚本](scripts/install.md) - 安装脚本说明
+  - [管理脚本](scripts/management.md) - 管理脚本说明
+  - [工具脚本](scripts/utils.md) - 工具脚本说明
 
 ## 🎯 快速导航
 
