@@ -6,6 +6,10 @@ description: 深度集成到 Proxmox VE Web UI 的 Clash.Meta (mihomo) 原生插
 author: Proxmox Libraries
 email: support@proxmox-libraries.org
 
+# 基础 URL 配置
+baseurl: "/docs"
+url: "https://proxmox-libraries.github.io"
+
 # 主题设置
 theme: jekyll-theme-cayman
 # 或者使用其他主题
