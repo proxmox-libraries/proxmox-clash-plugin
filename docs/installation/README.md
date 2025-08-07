@@ -32,56 +32,21 @@ title: 安装指南
 
 ## 🚀 安装方法
 
-### 方法一：智能版本管理安装（推荐）
+### 方法一：一键安装（推荐）
 
 ```bash
-# 克隆项目
-git clone https://github.com/proxmox-libraries/proxmox-clash-plugin.git
-cd proxmox-clash-plugin
+# 一键安装最新版本
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash
+```
 
+### 方法二：直接脚本安装
+
+```bash
 # 安装最新版本
-sudo bash scripts/install/install_direct.sh -l
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install_direct.sh | sudo bash
 
-# 或安装指定版本
-sudo bash scripts/install/install_direct.sh -v v1.1.0
-
-# 查看可用版本
-sudo bash scripts/install/install_direct.sh -c
-```
-
-### 方法二：传统安装
-
-```bash
-# 克隆项目
-git clone https://github.com/proxmox-libraries/proxmox-clash-plugin.git
-cd proxmox-clash-plugin
-
-# 运行安装脚本
-sudo bash scripts/install/install_direct.sh
-```
-
-### 方法三：手动安装
-
-```bash
-# 1. 创建目录
-sudo mkdir -p /opt/proxmox-clash/{config,scripts,clash-meta}
-
-# 2. 下载 mihomo
-curl -L https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-amd64 \
-  -o /opt/proxmox-clash/clash-meta
-chmod +x /opt/proxmox-clash/clash-meta
-
-# 3. 安装 API 插件
-sudo cp api/Clash.pm /usr/share/perl5/PVE/API2/
-
-# 4. 安装前端插件
-sudo cp ui/pve-panel-clash.js /usr/share/pve-manager/ext6/
-
-# 5. 安装服务
-sudo cp service/clash-meta.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable clash-meta
-sudo systemctl start clash-meta
+# 安装指定版本
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install_direct.sh | sudo bash -s -- v1.1.0
 ```
 
 ## ⚙️ 安装后配置
@@ -146,7 +111,7 @@ sudo /opt/proxmox-clash/scripts/management/view_logs.sh
 
 ```bash
 # 确保脚本有执行权限
-chmod +x scripts/*.sh
+chmod +x scripts/*/*.sh
 
 # 检查目录权限
 sudo chown -R root:root /opt/proxmox-clash
@@ -176,7 +141,6 @@ sudo nano /opt/proxmox-clash/config/config.yaml
 
 - [版本管理](version-management.md) - 版本管理功能详解
 - [服务配置](service.md) - systemd 服务配置
-- [Clash Meta](clash-meta.md) - mihomo 内核说明
 - [快速配置](../configuration/quick-start.md) - 快速上手指南
 
 ## 🔗 下一步
@@ -185,5 +149,5 @@ sudo nano /opt/proxmox-clash/config/config.yaml
 
 1. 阅读 [快速配置](../configuration/quick-start.md) 进行基础设置
 2. 查看 [Web UI 使用](../ui/README.md) 了解界面操作
-3. 学习 [脚本工具](../scripts.md) 进行日常管理
+3. 学习 [脚本工具](../scripts/) 进行日常管理
 4. 遇到问题时参考 [故障排除](../troubleshooting/README.md)

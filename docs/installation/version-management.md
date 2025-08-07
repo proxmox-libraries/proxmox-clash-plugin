@@ -250,4 +250,4 @@ sudo /opt/proxmox-clash/scripts/install/install_direct.sh -v v1.1.0
 - [安装指南](README.md) - 完整安装流程
 - [升级指南](upgrade.md) - 详细升级说明
 - [故障排除](../troubleshooting/README.md) - 常见问题解决
-- [脚本工具](../scripts.md) - 管理脚本使用
+- [脚本工具](../scripts/) - 管理脚本使用

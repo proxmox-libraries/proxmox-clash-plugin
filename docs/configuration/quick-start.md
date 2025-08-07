@@ -197,7 +197,7 @@ sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh
 
 1. 阅读 [配置管理](README.md) 了解高级配置选项
 2. 查看 [Web UI 使用](../ui/README.md) 学习界面操作
-3. 学习 [脚本工具](../scripts.md) 进行日常管理
+3. 学习 [脚本工具](../scripts/) 进行日常管理
 4. 遇到问题时参考 [故障排除](../troubleshooting/README.md)
 
 ## 🔗 相关链接
