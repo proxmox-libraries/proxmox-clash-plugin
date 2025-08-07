@@ -15,6 +15,7 @@ jobs:
       contents: read
       pages: write
       id-token: write
+      actions: read
     
     steps:
     - name: Checkout
@@ -36,15 +37,18 @@ jobs:
         bundle install
         bundle exec jekyll build --destination ../_site
         
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './_site'
+        
     - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./_site
-        force_orphan: true
-        user_name: 'github-actions[bot]'
-        user_email: 'github-actions[bot]@users.noreply.github.com'
+      id: deployment
+      uses: actions/deploy-pages@v4
         
     - name: Comment PR
       if: github.event_name == 'pull_request'
