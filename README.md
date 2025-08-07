@@ -42,7 +42,7 @@ proxmox-clash-plugin/
 
 ```bash
 # 克隆项目
-git clone https://github.com/your-repo/proxmox-clash-plugin.git
+git clone https://github.com/proxmox-libraries/proxmox-clash-plugin.git
 cd proxmox-clash-plugin
 
 # 运行安装脚本

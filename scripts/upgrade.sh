@@ -20,7 +20,7 @@ UI_DIR="/usr/share/pve-manager/ext6"
 BACKUP_DIR="/opt/proxmox-clash/backup"
 CURRENT_VERSION_FILE="$CLASH_DIR/version"
 VERSION_FILE="VERSION"
-GITHUB_REPO="your-repo/proxmox-clash-plugin"
+GITHUB_REPO="proxmox-libraries/proxmox-clash-plugin"
 GITHUB_API="https://api.github.com/repos/$GITHUB_REPO/releases/latest"
 
 # 显示帮助信息

@@ -148,7 +148,7 @@ sudo /opt/proxmox-clash/scripts/upgrade.sh -r backup_20231201_143022
 2. **升级下载失败**
    ```bash
    # 检查 GitHub 连接
-   curl -L https://github.com/your-repo/proxmox-clash-plugin/archive/refs/tags/v1.1.0.tar.gz
+   curl -L https://github.com/proxmox-libraries/proxmox-clash-plugin/archive/refs/tags/v1.1.0.tar.gz
    
    # 手动下载并解压
    ```
