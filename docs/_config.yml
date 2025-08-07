@@ -56,12 +56,6 @@ nav:
     url: /installation/
   - title: 配置管理
     url: /configuration/
-  - title: API 文档
-    url: /api/
-  - title: Web UI
-    url: /ui/
-  - title: 脚本工具
-    url: /scripts/
   - title: 开发文档
     url: /development/
   - title: 故障排除
@@ -72,32 +66,16 @@ seo:
   title: Proxmox Clash 插件文档
   description: 深度集成到 Proxmox VE Web UI 的 Clash.Meta (mihomo) 原生插件
   author: Proxmox Libraries
-  image: /images/logo.png
-  type: website
 
 # 社交媒体
 social:
   github: proxmox-libraries
-  twitter: proxmox_libs
-
-# 分析
-analytics:
-  google: UA-XXXXXXXXX-X
-  # 添加 Google Analytics ID
-
-# 评论系统
-comments:
-  provider: disqus
-  disqus:
-    shortname: proxmox-clash-plugin
 
 # 搜索
 search: true
 
 # 目录
 toc: true
-
-# 代码高亮
 highlighter: rouge
 markdown: kramdown
 kramdown:
