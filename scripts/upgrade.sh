@@ -19,7 +19,6 @@ API_DIR="/usr/share/perl5/PVE/API2"
 UI_DIR="/usr/share/pve-manager/ext6"
 BACKUP_DIR="/opt/proxmox-clash/backup"
 CURRENT_VERSION_FILE="$CLASH_DIR/version"
-VERSION_FILE="VERSION"
 GITHUB_REPO="proxmox-libraries/proxmox-clash-plugin"
 GITHUB_API="https://api.github.com/repos/$GITHUB_REPO/releases/latest"
 
@@ -53,14 +52,7 @@ get_current_version() {
     fi
 }
 
-# 获取项目版本
-get_project_version() {
-    if [ -f "$VERSION_FILE" ]; then
-        cat "$VERSION_FILE"
-    else
-        echo "unknown"
-    fi
-}
+
 
 # 获取最新版本
 get_latest_version() {
@@ -86,8 +78,8 @@ get_latest_version() {
         fi
     fi
     
-    # 如果无法获取，返回项目版本
-    get_project_version
+    # 如果无法获取，返回 unknown
+    echo "unknown"
 }
 
 # 版本比较函数

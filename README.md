@@ -23,6 +23,8 @@ proxmox-clash-plugin/
 │   └── pve-panel-clash.js       # ExtJS 前端界面
 ├── scripts/
 │   ├── install.sh               # 安装脚本
+│   ├── install_with_version.sh  # 智能版本管理安装脚本
+│   ├── version_manager.sh       # 版本管理脚本
 │   ├── uninstall.sh             # 卸载脚本
 │   ├── update_subscription.sh   # 订阅更新脚本
 │   ├── setup_transparent_proxy.sh # 透明代理配置
@@ -33,8 +35,28 @@ proxmox-clash-plugin/
 ├── config/
 │   └── config.yaml              # 基础配置文件
 ├── clash-meta/                  # mihomo 内核目录
-└── VERSION                      # 版本文件
+└── docs/                        # 📚 完整文档目录
+    ├── installation/            # 安装指南
+    ├── configuration/           # 配置管理
+    ├── api/                     # API 文档
+    ├── ui/                      # Web UI 文档
+    ├── scripts/                 # 脚本工具文档
+    ├── development/             # 开发文档
+    └── troubleshooting/         # 故障排除
 ```
+
+## 📚 文档
+
+📖 **完整文档**: [docs/README.md](docs/README.md) - 详细的文档目录和使用指南
+
+### 快速导航
+- 🚀 [安装指南](docs/installation/README.md) - 详细的安装步骤
+- ⚙️ [快速配置](docs/configuration/quick-start.md) - 快速上手指南
+- 🔧 [配置管理](docs/configuration/README.md) - 配置文件详解
+- 🌐 [Web UI 使用](docs/ui/README.md) - 界面操作说明
+- 📋 [脚本工具](docs/scripts/README.md) - 管理脚本使用
+- 🔄 [版本管理](docs/installation/version-management.md) - 版本管理功能
+- 🛠️ [故障排除](docs/troubleshooting/README.md) - 常见问题解决
 
 ## 🛠️ 安装方法
 

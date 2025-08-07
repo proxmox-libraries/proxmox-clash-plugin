@@ -115,7 +115,11 @@ chmod -R 755 "$CLASH_DIR"
 
 # 创建版本文件
 echo "📝 创建版本文件..."
-PROJECT_VERSION=$(cat VERSION 2>/dev/null || echo "1.0.0")
+if [ -f "$(dirname "$0")/version_manager.sh" ]; then
+    PROJECT_VERSION=$("$(dirname "$0")/version_manager.sh" --latest 2>/dev/null || echo "1.0.0")
+else
+    PROJECT_VERSION="1.0.0"
+fi
 echo "$PROJECT_VERSION" > "$CLASH_DIR/version"
 log_message "INFO" "插件版本: $PROJECT_VERSION"
 

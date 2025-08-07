@@ -1,0 +1,109 @@
+# GitHub Pages 配置
+# 使用 Jekyll 主题
+
+title: Proxmox Clash 插件文档
+description: 深度集成到 Proxmox VE Web UI 的 Clash.Meta (mihomo) 原生插件
+author: Proxmox Libraries
+email: support@proxmox-libraries.org
+
+# 主题设置
+theme: jekyll-theme-cayman
+# 或者使用其他主题
+# theme: jekyll-theme-minimal
+# theme: jekyll-theme-slate
+
+# 插件
+plugins:
+  - jekyll-relative-links
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# 排除文件
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+
+# 包含文件
+include:
+  - _pages
+  - _posts
+  - assets
+  - images
+
+# 默认布局
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+
+# 导航
+nav:
+  - title: 首页
+    url: /
+  - title: 安装指南
+    url: /installation/
+  - title: 配置管理
+    url: /configuration/
+  - title: API 文档
+    url: /api/
+  - title: Web UI
+    url: /ui/
+  - title: 脚本工具
+    url: /scripts/
+  - title: 开发文档
+    url: /development/
+  - title: 故障排除
+    url: /troubleshooting/
+
+# SEO 设置
+seo:
+  title: Proxmox Clash 插件文档
+  description: 深度集成到 Proxmox VE Web UI 的 Clash.Meta (mihomo) 原生插件
+  author: Proxmox Libraries
+  image: /images/logo.png
+  type: website
+
+# 社交媒体
+social:
+  github: proxmox-libraries
+  twitter: proxmox_libs
+
+# 分析
+analytics:
+  google: UA-XXXXXXXXX-X
+  # 添加 Google Analytics ID
+
+# 评论系统
+comments:
+  provider: disqus
+  disqus:
+    shortname: proxmox-clash-plugin
+
+# 搜索
+search: true
+
+# 目录
+toc: true
+
+# 代码高亮
+highlighter: rouge
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    block:
+      line_numbers: true
+      start_line: 1
