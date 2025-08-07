@@ -61,6 +61,26 @@ proxmox-clash-plugin/
 
 ## 🛠️ 安装方法
 
+### 🚀 一键安装（推荐）
+
+最简单的安装方式，自动下载并安装最新版本：
+
+```bash
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash
+```
+
+### 🔧 直接脚本安装
+
+支持版本选择的轻量级安装方式：
+
+```bash
+# 安装最新版本
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install_direct.sh | sudo bash
+
+# 安装指定版本
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install_direct.sh | sudo bash -s -- v1.1.0
+```
+
 ### 🌐 GitHub 访问优化（中国大陆用户）
 
 如果遇到 GitHub 下载慢的问题，可以先配置镜像源：
@@ -76,36 +96,6 @@ bash scripts/setup_github_mirror.sh -m ghproxy
 bash scripts/setup_github_mirror.sh -m fastgit
 bash scripts/setup_github_mirror.sh -m cnpmjs
 ```
-
-### 方法一：智能版本管理安装（推荐）
-
-```bash
-# 克隆项目
-git clone https://github.com/proxmox-libraries/proxmox-clash-plugin.git
-cd proxmox-clash-plugin
-
-# 安装最新版本
-sudo bash scripts/install_with_version.sh -l
-
-# 或安装指定版本
-sudo bash scripts/install_with_version.sh -v v1.1.0
-
-# 查看可用版本
-sudo bash scripts/install_with_version.sh -c
-```
-
-### 方法二：传统安装
-
-```bash
-# 克隆项目
-git clone https://github.com/proxmox-libraries/proxmox-clash-plugin.git
-cd proxmox-clash-plugin
-
-# 运行安装脚本
-sudo bash scripts/install.sh
-```
-
-### 方法二：手动安装
 
 ```bash
 # 1. 创建目录
