@@ -64,7 +64,7 @@ echo "当前版本: $version1, 最新版本: $version2"
 
 ### 2. 智能安装脚本
 
-`install_with_version.sh` 结合版本管理功能的安装脚本。
+`install_direct.sh` 结合版本管理功能的安装脚本。
 
 #### 使用方法
 
