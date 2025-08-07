@@ -12,6 +12,10 @@ theme: jekyll-theme-cayman
 # theme: jekyll-theme-minimal
 # theme: jekyll-theme-slate
 
+# 侧边栏配置
+show_sidebar: true
+sidebar: true
+
 # 插件
 plugins:
   - jekyll-relative-links
