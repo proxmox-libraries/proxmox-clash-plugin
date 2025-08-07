@@ -1,3 +1,8 @@
+---
+layout: default
+title: 安装指南
+---
+
 # 安装指南
 
 本指南将帮助您在 Proxmox VE 上安装和配置 Clash 插件。

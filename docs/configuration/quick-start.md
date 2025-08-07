@@ -1,3 +1,8 @@
+---
+layout: default
+title: 快速配置指南
+---
+
 # 快速配置指南
 
 本指南将帮助您快速配置 Proxmox Clash 插件，让您能够在几分钟内开始使用。

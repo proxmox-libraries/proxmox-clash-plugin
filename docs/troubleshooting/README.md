@@ -1,3 +1,8 @@
+---
+layout: default
+title: 故障排除
+---
+
 # 故障排除
 
 本指南将帮助您解决 Proxmox Clash 插件使用过程中遇到的常见问题。
