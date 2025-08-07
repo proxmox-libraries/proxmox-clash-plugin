@@ -81,12 +81,13 @@ download_files() {
     sudo mkdir -p "$INSTALL_DIR"
     
     # 复制文件
-    sudo cp -r "$extracted_dir"/{api,ui,service,scripts,config} "$INSTALL_DIR/"
+    sudo cp -r "$extracted_dir"/{api,ui,service,config} "$INSTALL_DIR/"
+    sudo cp -r "$extracted_dir/scripts" "$INSTALL_DIR/"
     
     # 设置权限
     sudo chown -R root:root "$INSTALL_DIR"
     sudo chmod -R 755 "$INSTALL_DIR"
-    sudo chmod +x "$INSTALL_DIR"/scripts/*.sh
+    sudo chmod +x "$INSTALL_DIR"/scripts/*/*.sh
     
     # 清理临时文件
     cd /
@@ -191,9 +192,9 @@ create_links() {
     log_step "创建管理脚本链接..."
     
     # 创建 /usr/local/bin 链接
-    sudo ln -sf "$INSTALL_DIR/scripts/install.sh" "/usr/local/bin/proxmox-clash-install"
-    sudo ln -sf "$INSTALL_DIR/scripts/upgrade.sh" "/usr/local/bin/proxmox-clash-upgrade"
-    sudo ln -sf "$INSTALL_DIR/scripts/uninstall.sh" "/usr/local/bin/proxmox-clash-uninstall"
+    sudo ln -sf "$INSTALL_DIR/scripts/install/install_direct.sh" "/usr/local/bin/proxmox-clash-install"
+sudo ln -sf "$INSTALL_DIR/scripts/management/upgrade.sh" "/usr/local/bin/proxmox-clash-upgrade"
+sudo ln -sf "$INSTALL_DIR/scripts/management/uninstall.sh" "/usr/local/bin/proxmox-clash-uninstall"
     
     log_info "✅ 管理脚本链接已创建"
 }

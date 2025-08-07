@@ -75,10 +75,10 @@ curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plug
 
 ```bash
 # 安装最新版本
-curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install_direct.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install_direct.sh | sudo bash
 
 # 安装指定版本
-curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install_direct.sh | sudo bash -s -- v1.1.0
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install_direct.sh | sudo bash -s -- v1.1.0
 ```
 
 ### 🌐 GitHub 访问优化（中国大陆用户）
@@ -87,14 +87,14 @@ curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plug
 
 ```bash
 # 检查网络连接
-bash scripts/setup_github_mirror.sh -c
+bash scripts/utils/setup_github_mirror.sh -c
 
 # 设置 ghproxy 镜像（推荐）
-bash scripts/setup_github_mirror.sh -m ghproxy
+bash scripts/utils/setup_github_mirror.sh -m ghproxy
 
 # 或设置其他镜像源
-bash scripts/setup_github_mirror.sh -m fastgit
-bash scripts/setup_github_mirror.sh -m cnpmjs
+bash scripts/utils/setup_github_mirror.sh -m fastgit
+bash scripts/utils/setup_github_mirror.sh -m cnpmjs
 ```
 
 ```bash

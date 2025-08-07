@@ -7,7 +7,7 @@ set -e
 
 # 配置变量
 GITHUB_REPO="proxmox-libraries/proxmox-clash-plugin"
-INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/$GITHUB_REPO/main/scripts/install_direct.sh"
+INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/$GITHUB_REPO/main/scripts/install/install_direct.sh"
 
 # 颜色输出
 RED='\033[0;31m'
