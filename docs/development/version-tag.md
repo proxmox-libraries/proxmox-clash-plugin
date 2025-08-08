@@ -200,7 +200,7 @@ Release v1.2.0: Security Enhancement Release
 - [语义化版本规范](https://semver.org/)
 - [GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github)
 - [发布说明](../releases/)
-- [发布说明](../releases/release-notes-v1.2.0.md)
+- [发布说明](../releases/release-v1.2.0.md)
 
 ---
 

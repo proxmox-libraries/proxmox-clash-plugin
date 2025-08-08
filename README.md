@@ -6,7 +6,7 @@
 
 一个深度集成到 Proxmox VE Web UI 的 Clash.Meta (mihomo) 原生插件，提供安全透明代理和完整的控制功能。
 
-**🎉 最新版本 v1.2.0 现已发布！** - [查看发布说明](docs/releases/) | [更新日志](docs/releases/changelog-v1.2.0.md)
+**🎉 最新版本 v1.2.0 现已发布！** - [查看发布说明](docs/releases/)
 
 ## 🚀 功能特性
 
