@@ -1,6 +1,12 @@
 # Proxmox Clash 原生插件
 
-一个深度集成到 Proxmox VE Web UI 的 Clash.Meta (mihomo) 原生插件，提供透明代理和完整的控制功能。
+[![Version](https://img.shields.io/badge/version-v1.2.0-blue.svg)](https://github.com/proxmox-libraries/proxmox-clash-plugin/releases/tag/v1.2.0)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Proxmox%20VE-orange.svg)](https://proxmox.com)
+
+一个深度集成到 Proxmox VE Web UI 的 Clash.Meta (mihomo) 原生插件，提供安全透明代理和完整的控制功能。
+
+**🎉 最新版本 v1.2.0 现已发布！** - [查看发布说明](docs/releases/) | [更新日志](docs/releases/changelog-v1.2.0.md)
 
 ## 🚀 功能特性
 
@@ -377,6 +383,16 @@ sudo systemctl status clash-meta
 
 # 查看日志
 sudo journalctl -u clash-meta -f
+
+# 检查配置文件语法
+sudo /opt/proxmox-clash/clash-meta -t -c /opt/proxmox-clash/config/config.yaml
+
+# 检查端口占用
+sudo netstat -tlnp | grep -E ':(7890|9090)'
+
+# 检查文件权限
+ls -la /opt/proxmox-clash/clash-meta
+ls -la /opt/proxmox-clash/config/
 ```
 
 ### 2. Web UI 无法访问
@@ -387,6 +403,15 @@ sudo netstat -tlnp | grep 9090
 
 # 检查防火墙
 sudo ufw status
+
+# 检查 PVE API 插件
+ls -la /usr/share/perl5/PVE/API2/Clash.pm
+
+# 检查前端插件
+ls -la /usr/share/pve-manager/ext6/pve-panel-clash.js
+
+# 重启 PVE 服务
+sudo systemctl restart pveproxy
 ```
 
 ### 3. 透明代理不工作
@@ -403,6 +428,9 @@ sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh status
 
 # 重新配置透明代理
 sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh enable
+
+# 检查内核模块
+lsmod | grep tun
 ```
 
 ### 4. 网络中断恢复
@@ -419,6 +447,256 @@ sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh disable
 # 方法3：清除 iptables 规则
 sudo iptables -t nat -F PREROUTING
 sudo iptables -t mangle -F PREROUTING
+
+# 方法4：重启网络服务
+sudo systemctl restart networking
+```
+
+### 5. 权限问题
+
+```bash
+# 检查用户权限
+whoami
+groups
+
+# 确保用户有 sudo 权限
+sudo -l
+
+# 修复文件权限
+sudo chown -R root:root /opt/proxmox-clash/
+sudo chmod +x /opt/proxmox-clash/clash-meta
+sudo chmod 644 /opt/proxmox-clash/config/config.yaml
+```
+
+### 6. 订阅更新失败
+
+```bash
+# 检查网络连接
+curl -I https://www.google.com
+
+# 测试订阅 URL
+curl -I "YOUR_SUBSCRIPTION_URL"
+
+# 手动更新订阅
+sudo /opt/proxmox-clash/scripts/management/update_subscription.sh
+
+# 检查订阅文件
+ls -la /opt/proxmox-clash/config/
+```
+
+### 7. 版本管理问题
+
+```bash
+# 检查版本信息
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -c
+
+# 检查可用更新
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -u
+
+# 清理版本缓存
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh --clear-cache
+
+# 强制刷新版本信息
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh --refresh
+```
+
+### 8. 日志查看问题
+
+```bash
+# 查看插件日志
+sudo /opt/proxmox-clash/scripts/management/view_logs.sh
+
+# 查看服务日志
+sudo journalctl -u clash-meta -f
+
+# 查看系统日志
+sudo dmesg | grep -i clash
+
+# 清空日志文件
+sudo /opt/proxmox-clash/scripts/management/view_logs.sh -c
+```
+
+### 9. 性能问题
+
+```bash
+# 检查系统资源使用
+top
+htop
+
+# 检查内存使用
+free -h
+
+# 检查磁盘空间
+df -h
+
+# 检查网络连接数
+ss -tuln | wc -l
+```
+
+### 10. 完全重置
+
+如果遇到严重问题需要完全重置：
+
+```bash
+# 停止服务
+sudo systemctl stop clash-meta
+sudo systemctl disable clash-meta
+
+# 卸载插件
+sudo /opt/proxmox-clash/scripts/management/uninstall.sh
+
+# 清理残留文件
+sudo rm -rf /opt/proxmox-clash
+sudo rm -f /usr/share/perl5/PVE/API2/Clash.pm
+sudo rm -f /usr/share/pve-manager/ext6/pve-panel-clash.js
+sudo rm -f /etc/systemd/system/clash-meta.service
+
+# 重新加载 systemd
+sudo systemctl daemon-reload
+
+# 重新安装
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash
+```
+
+## 🔒 安全配置
+
+### 安全最佳实践
+
+#### 1. 透明代理安全使用
+
+**⚠️ 重要提醒**：透明代理功能强大但有一定风险，请谨慎使用。
+
+```bash
+# 启用前检查网络环境
+ping -c 3 8.8.8.8
+ping -c 3 www.google.com
+
+# 逐步启用透明代理
+# 1. 先测试代理连接
+curl -x http://127.0.0.1:7890 https://www.google.com
+
+# 2. 启用透明代理
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh enable
+
+# 3. 测试网络连接
+ping -c 3 8.8.8.8
+```
+
+#### 2. 网络安全配置
+
+```bash
+# 配置防火墙规则
+sudo ufw allow 7890/tcp  # 代理端口
+sudo ufw allow 9090/tcp  # 控制端口
+sudo ufw deny 7890/udp   # 拒绝 UDP 代理
+
+# 限制访问来源
+sudo ufw allow from 192.168.1.0/24 to any port 9090
+```
+
+#### 3. 配置文件安全
+
+使用安全配置模板：
+
+```bash
+# 备份当前配置
+sudo cp /opt/proxmox-clash/config/config.yaml /opt/proxmox-clash/config/config.yaml.backup
+
+# 使用安全配置
+sudo cp /opt/proxmox-clash/config/safe-config.yaml /opt/proxmox-clash/config/config.yaml
+
+# 重启服务
+sudo systemctl restart clash-meta
+```
+
+#### 4. 访问控制
+
+```bash
+# 设置配置文件权限
+sudo chmod 600 /opt/proxmox-clash/config/config.yaml
+sudo chown root:root /opt/proxmox-clash/config/config.yaml
+
+# 限制日志文件访问
+sudo chmod 644 /var/log/proxmox-clash.log
+sudo chown root:adm /var/log/proxmox-clash.log
+```
+
+#### 5. 监控和审计
+
+```bash
+# 设置日志轮转
+sudo cp /opt/proxmox-clash/config/logrotate.conf /etc/logrotate.d/proxmox-clash
+
+# 监控服务状态
+sudo systemctl status clash-meta --no-pager
+
+# 检查异常连接
+sudo netstat -tlnp | grep clash
+```
+
+### 安全配置模板
+
+安全配置模板包含以下特性：
+
+- **故障转移机制**：确保包含直连作为备选
+- **本地网络直连**：管理网络和本地服务不走代理
+- **DNS 安全配置**：多层备用 DNS 服务器
+- **访问控制**：限制控制端口访问
+- **日志记录**：详细的操作日志
+
+```yaml
+# 安全配置示例
+mixed-port: 7890
+external-controller: 127.0.0.1:9090
+allow-lan: false
+bind-address: 127.0.0.1
+mode: rule
+log-level: info
+
+# DNS 配置
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  fallback:
+    - https://dns.google/dns-query
+    - https://cloudflare-dns.com/dns-query
+  fallback-filter:
+    geoip: true
+    ipcidr:
+      - 240.0.0.0/4
+      - 0.0.0.0/32
+
+# 代理组配置（包含故障转移）
+proxy-groups:
+  - name: Proxy
+    type: select
+    proxies:
+      - Auto
+      - DIRECT
+  - name: Auto
+    type: url-test
+    proxies:
+      - Proxy1
+      - Proxy2
+      - DIRECT
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+
+# 规则配置
+rules:
+  - DOMAIN-SUFFIX,local,DIRECT
+  - DOMAIN-SUFFIX,localhost,DIRECT
+  - IP-CIDR,127.0.0.0/8,DIRECT
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT
+  - IP-CIDR,172.16.0.0/12,DIRECT
+  - MATCH,Proxy
 ```
 
 ## 🚀 高级功能
@@ -452,4 +730,199 @@ MIT License
 
 ## 📞 支持
 
-如有问题，请提交 Issue 或联系维护者。 
+如有问题，请提交 Issue 或联系维护者。
+
+## 📋 快速参考
+
+### 🔧 常用命令
+
+#### 服务管理
+```bash
+# 启动服务
+sudo systemctl start clash-meta
+
+# 停止服务
+sudo systemctl stop clash-meta
+
+# 重启服务
+sudo systemctl restart clash-meta
+
+# 查看状态
+sudo systemctl status clash-meta
+
+# 启用自启动
+sudo systemctl enable clash-meta
+
+# 禁用自启动
+sudo systemctl disable clash-meta
+```
+
+#### 配置管理
+```bash
+# 重载配置
+curl -X PUT http://127.0.0.1:9090/configs/reload
+
+# 备份配置
+sudo cp /opt/proxmox-clash/config/config.yaml /opt/proxmox-clash/config/config.yaml.backup
+
+# 恢复配置
+sudo cp /opt/proxmox-clash/config/config.yaml.backup /opt/proxmox-clash/config/config.yaml
+
+# 编辑配置
+sudo nano /opt/proxmox-clash/config/config.yaml
+```
+
+#### 订阅管理
+```bash
+# 更新订阅
+sudo /opt/proxmox-clash/scripts/management/update_subscription.sh
+
+# 查看订阅状态
+curl http://127.0.0.1:9090/proxies
+
+# 切换代理
+curl -X PUT http://127.0.0.1:9090/proxies/Proxy -d '{"name":"Auto"}'
+```
+
+#### 透明代理
+```bash
+# 启用透明代理
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh enable
+
+# 禁用透明代理
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh disable
+
+# 查看状态
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh status
+```
+
+#### 版本管理
+```bash
+# 检查更新
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -u
+
+# 升级到最新版本
+sudo /opt/proxmox-clash/scripts/upgrade.sh -l
+
+# 查看当前版本
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -c
+```
+
+#### 日志查看
+```bash
+# 查看插件日志
+sudo /opt/proxmox-clash/scripts/management/view_logs.sh
+
+# 实时跟踪日志
+sudo /opt/proxmox-clash/scripts/management/view_logs.sh -f
+
+# 查看服务日志
+sudo journalctl -u clash-meta -f
+```
+
+### 🌐 网络测试
+
+#### 代理测试
+```bash
+# 测试 HTTP 代理
+curl -x http://127.0.0.1:7890 https://www.google.com
+
+# 测试 SOCKS5 代理
+curl --socks5 127.0.0.1:7890 https://www.google.com
+
+# 测试透明代理
+curl https://www.google.com
+```
+
+#### 连接测试
+```bash
+# 测试端口监听
+netstat -tlnp | grep -E ':(7890|9090)'
+
+# 测试 API 接口
+curl http://127.0.0.1:9090/version
+
+# 测试代理延迟
+curl http://127.0.0.1:9090/proxies/Auto/delay
+```
+
+### 📊 状态检查
+
+#### 系统状态
+```bash
+# 检查服务状态
+sudo systemctl is-active clash-meta
+
+# 检查端口占用
+sudo ss -tlnp | grep clash
+
+# 检查进程
+ps aux | grep clash
+```
+
+#### 网络状态
+```bash
+# 检查 TUN 接口
+ip link show clash-tun
+
+# 检查 iptables 规则
+sudo iptables -t nat -L PREROUTING
+
+# 检查路由表
+ip route show
+```
+
+### 🔍 故障诊断
+
+#### 快速诊断
+```bash
+# 一键诊断脚本
+sudo /opt/proxmox-clash/scripts/management/view_logs.sh -a
+
+# 检查配置文件语法
+sudo /opt/proxmox-clash/clash-meta -t -c /opt/proxmox-clash/config/config.yaml
+
+# 检查文件权限
+ls -la /opt/proxmox-clash/
+```
+
+#### 网络诊断
+```bash
+# 检查 DNS 解析
+nslookup www.google.com 127.0.0.1
+
+# 检查网络连通性
+ping -c 3 8.8.8.8
+
+# 检查代理连接
+curl -I --connect-timeout 5 http://127.0.0.1:7890
+```
+
+### 📝 配置文件位置
+
+| 文件类型 | 路径 | 说明 |
+|---------|------|------|
+| 主配置 | `/opt/proxmox-clash/config/config.yaml` | Clash 主配置文件 |
+| 安全配置 | `/opt/proxmox-clash/config/safe-config.yaml` | 安全配置模板 |
+| 日志配置 | `/opt/proxmox-clash/config/logrotate.conf` | 日志轮转配置 |
+| 服务文件 | `/etc/systemd/system/clash-meta.service` | systemd 服务文件 |
+| API 插件 | `/usr/share/perl5/PVE/API2/Clash.pm` | PVE API 插件 |
+| UI 插件 | `/usr/share/pve-manager/ext6/pve-panel-clash.js` | Web UI 插件 |
+| 日志文件 | `/var/log/proxmox-clash.log` | 插件日志文件 |
+
+### 🔗 常用 URL
+
+| 功能 | URL | 说明 |
+|------|-----|------|
+| Web UI | `https://your-pve-ip:8006/` | Proxmox Web 界面 |
+| Clash API | `http://127.0.0.1:9090` | Clash 控制 API |
+| 代理端口 | `http://127.0.0.1:7890` | HTTP/SOCKS5 代理 |
+| 订阅更新 | `http://127.0.0.1:9090/configs/reload` | 重载配置 |
+
+## 📋 版本历史
+
+- **v1.2.0** (2024-12-19) - 安全改进版本，透明代理默认关闭
+- **v1.1.0** (2024-12-01) - 版本管理和订阅功能
+- **v1.0.0** (2024-11-15) - 首次发布
+
+详细更新日志请查看 [发布说明](docs/releases/) 
