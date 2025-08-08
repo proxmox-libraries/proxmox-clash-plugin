@@ -258,11 +258,5 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
     exit 0
 fi
 
-# 检查权限
-if [ "$EUID" -eq 0 ]; then
-    log_error "请不要使用 root 用户运行此脚本"
-    exit 1
-fi
-
 # 运行主函数
 main "$@"
