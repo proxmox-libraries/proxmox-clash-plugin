@@ -48,10 +48,28 @@ sudo /opt/proxmox-clash/scripts/management/update_subscription.sh "您的订阅U
 
 ### 3. 配置透明代理
 
+**⚠️ 安全提示**：透明代理默认关闭，需要手动开启以避免网络中断风险。
+
+#### 方法一：Web UI 配置（推荐）
+
+1. 在 "Clash 控制" 面板中找到 "透明代理设置"
+2. 勾选 "启用透明代理" 复选框
+3. 点击 "配置 iptables 规则" 按钮
+
+#### 方法二：命令行配置
+
 ```bash
-# 运行透明代理配置脚本
-sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh
+# 启用透明代理
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh enable
+
+# 禁用透明代理
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh disable
+
+# 查看状态
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh status
 ```
+
+**详细说明**：请参考 [透明代理配置指南](transparent-proxy.md)
 
 ### 4. 测试连接
 
@@ -184,25 +202,49 @@ sudo ufw allow 9090
 ### 3. 透明代理不工作
 
 ```bash
+# 检查 TUN 接口
+ip link show clash-tun
+
 # 检查 iptables 规则
 sudo iptables -t nat -L PREROUTING
 
+# 检查透明代理状态
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh status
+
 # 重新配置透明代理
-sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh enable
+```
+
+### 4. 网络中断恢复
+
+如果启用透明代理后网络中断：
+
+```bash
+# 方法1：停止 Clash 服务
+sudo systemctl stop clash-meta
+
+# 方法2：禁用透明代理
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh disable
+
+# 方法3：清除 iptables 规则
+sudo iptables -t nat -F PREROUTING
+sudo iptables -t mangle -F PREROUTING
 ```
 
 ## 📚 下一步
 
 完成基础配置后，建议您：
 
-1. 阅读 [配置管理](README.md) 了解高级配置选项
-2. 查看 [Web UI 使用](../ui/README.md) 学习界面操作
-3. 学习 [脚本工具](../scripts/) 进行日常管理
-4. 遇到问题时参考 [故障排除](../troubleshooting/README.md)
+1. 阅读 [透明代理配置指南](transparent-proxy.md) 了解安全配置
+2. 阅读 [配置管理](README.md) 了解高级配置选项
+3. 查看 [Web UI 使用](../ui/README.md) 学习界面操作
+4. 学习 [脚本工具](../scripts/) 进行日常管理
+5. 遇到问题时参考 [故障排除](../troubleshooting/README.md)
 
 ## 🔗 相关链接
 
 - [安装指南](../installation/README.md) - 完整安装流程
+- [透明代理配置指南](transparent-proxy.md) - 安全透明代理配置
 - [配置管理](README.md) - 详细配置说明
 - [API 文档](../api/README.md) - API 接口文档
 - [故障排除](../troubleshooting/README.md) - 问题解决方案

@@ -12,6 +12,7 @@ title: Proxmox Clash 插件文档
 ### 🚀 快速开始
 - [安装指南](installation/README.md) - 详细的安装步骤和配置
 - [快速配置](configuration/quick-start.md) - 快速上手指南
+- [透明代理配置](configuration/transparent-proxy.md) - 安全透明代理配置
 - [GitHub 镜像配置](installation/github-mirror.md) - 解决下载慢的问题
 
 ### 📖 用户指南
@@ -72,7 +73,8 @@ curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plug
 ### 新用户
 1. [安装指南](installation/README.md) - 开始安装
 2. [快速配置](configuration/quick-start.md) - 基础配置
-3. [版本管理](installation/version-management.md) - 版本管理
+3. [透明代理配置](configuration/transparent-proxy.md) - 安全透明代理设置
+4. [版本管理](installation/version-management.md) - 版本管理
 
 ### 管理员
 1. [故障排除](troubleshooting/README.md) - 问题解决

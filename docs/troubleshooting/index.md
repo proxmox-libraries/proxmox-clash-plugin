@@ -121,24 +121,31 @@ CT/VM 中的网络流量没有通过代理，直连访问。
 #### 解决方案
 
 ```bash
-# 1. 检查 iptables 规则
+# 1. 检查透明代理状态
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh status
+
+# 2. 检查 TUN 接口
+ip link show clash-tun
+
+# 3. 检查 iptables 规则
 sudo iptables -t nat -L PREROUTING
 
-# 2. 重新配置透明代理
-sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh
+# 4. 重新配置透明代理
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh enable
 
-# 3. 检查网桥配置
+# 5. 检查网桥配置
 sudo ip link show vmbr0
 sudo ip link show vmbr1
 
-# 4. 测试代理连接
+# 6. 测试代理连接
 curl -x http://127.0.0.1:7890 http://www.google.com
 
-# 5. 检查 DNS 配置
+# 7. 检查 DNS 配置
 nslookup google.com 127.0.0.1
 ```
 
 #### 常见原因
+- 透明代理未启用
 - iptables 规则未正确配置
 - 网桥配置问题
 - DNS 解析问题
@@ -206,6 +213,37 @@ sudo /opt/proxmox-clash/scripts/management/view_logs.sh -e
 - DNS 解析慢
 - 系统资源不足
 - 配置不当
+
+### 6. 网络中断恢复
+
+#### 问题描述
+启用透明代理后，Proxmox 主机或 CT/VM 网络中断，无法访问外网。
+
+#### 解决方案
+
+```bash
+# 方法1：停止 Clash 服务（推荐）
+sudo systemctl stop clash-meta
+
+# 方法2：禁用透明代理
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh disable
+
+# 方法3：禁用 TUN 接口
+sudo ip link set dev clash-tun down
+
+# 方法4：清除 iptables 规则
+sudo iptables -t nat -F PREROUTING
+sudo iptables -t mangle -F PREROUTING
+
+# 方法5：重启网络服务
+sudo systemctl restart networking
+```
+
+#### 预防措施
+- 使用安全的配置文件（参考 [透明代理配置指南](../configuration/transparent-proxy.md)）
+- 确保代理组包含直连作为备选
+- 测试环境验证后再启用透明代理
+- 定期备份配置文件
 
 ## 🔧 高级故障排除
 
@@ -292,6 +330,7 @@ systemctl status clash-meta
 
 ## 📚 相关文档
 
+- [透明代理配置指南](../configuration/transparent-proxy.md) - 安全透明代理配置
 - [日志分析](logs.md) - 详细的日志分析指南
 - [性能优化](performance.md) - 性能调优指南
 - [配置管理](../configuration/README.md) - 配置问题解决

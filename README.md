@@ -6,7 +6,7 @@
 
 - ✅ **内置 Clash.Meta (mihomo)** - 使用最新的 mihomo 内核
 - ✅ **原生 Web UI 集成** - 深度集成到 Proxmox Web 界面，使用 ExtJS 组件
-- ✅ **自动透明代理** - CT/VM 自动使用代理，无需手动配置
+- ✅ **安全透明代理** - 默认关闭，用户手动开启，避免网络中断风险
 - ✅ **订阅管理** - 支持订阅导入、更新、节点切换
 - ✅ **REST API** - 提供完整的 API 接口
 - ✅ **systemd 服务** - 自动启动和管理
@@ -133,9 +133,25 @@ sudo systemctl start clash-meta
 
 ### 3. 配置透明代理
 
+**⚠️ 安全提示**：透明代理默认关闭，需要手动开启以避免网络中断风险。
+
+#### 方法一：Web UI 配置（推荐）
+
+1. 在 "Clash 控制" 面板中找到 "透明代理设置"
+2. 勾选 "启用透明代理" 复选框
+3. 点击 "配置 iptables 规则" 按钮
+
+#### 方法二：命令行配置
+
 ```bash
-# 运行透明代理配置脚本
-sudo /opt/proxmox-clash/scripts/setup_transparent_proxy.sh
+# 启用透明代理
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh enable
+
+# 禁用透明代理
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh disable
+
+# 查看状态
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh status
 ```
 
 ### 4. 测试代理
@@ -334,6 +350,7 @@ sudo /opt/proxmox-clash/scripts/upgrade.sh -r backup_20231201_143022
 - `PUT /api2/json/nodes/{node}/clash/configs/reload` - 重载配置
 - `POST /api2/json/nodes/{node}/clash/subscription/update` - 更新订阅
 - `POST /api2/json/nodes/{node}/clash/setup-transparent-proxy` - 配置透明代理
+- `POST /api2/json/nodes/{node}/clash/toggle-transparent-proxy` - 切换透明代理状态
 - `GET /api2/json/nodes/{node}/clash/traffic` - 获取流量统计
 - `GET /api2/json/nodes/{node}/clash/logs` - 获取连接日志
 - `GET /api2/json/nodes/{node}/clash/version` - 获取版本信息
@@ -375,11 +392,33 @@ sudo ufw status
 ### 3. 透明代理不工作
 
 ```bash
+# 检查 TUN 接口
+ip link show clash-tun
+
 # 检查 iptables 规则
 sudo iptables -t nat -L PREROUTING
 
+# 检查透明代理状态
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh status
+
 # 重新配置透明代理
-sudo /opt/proxmox-clash/scripts/setup_transparent_proxy.sh
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh enable
+```
+
+### 4. 网络中断恢复
+
+如果启用透明代理后网络中断：
+
+```bash
+# 方法1：停止 Clash 服务
+sudo systemctl stop clash-meta
+
+# 方法2：禁用透明代理
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh disable
+
+# 方法3：清除 iptables 规则
+sudo iptables -t nat -F PREROUTING
+sudo iptables -t mangle -F PREROUTING
 ```
 
 ## 🚀 高级功能
