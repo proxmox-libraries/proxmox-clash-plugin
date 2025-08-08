@@ -106,13 +106,28 @@ Ext.define('PVE.panel.Clash', {
                         fieldLabel: 'DNS 端口',
                         value: '53'
                     }, {
-                        xtype: 'button',
-                        text: '配置透明代理',
+                        xtype: 'fieldset',
+                        title: '透明代理设置',
                         margin: '10 0 0 0',
-                        handler: function() {
-                            me.setupTransparentProxy();
-                        }
-                                               }, {
+                        items: [{
+                            xtype: 'checkbox',
+                            fieldLabel: '启用透明代理',
+                            name: 'tun_enable',
+                            id: 'tun_enable_checkbox',
+                            listeners: {
+                                change: function(field, newValue) {
+                                    me.toggleTransparentProxy(newValue);
+                                }
+                            }
+                        }, {
+                            xtype: 'button',
+                            text: '配置 iptables 规则',
+                            margin: '5 0 0 0',
+                            handler: function() {
+                                me.setupTransparentProxy();
+                            }
+                        }]
+                    }, {
                                xtype: 'button',
                                text: '测试连接',
                                margin: '5 0 0 0',
@@ -214,12 +229,42 @@ Ext.define('PVE.panel.Clash', {
                     configField.setValue(data.config || 'default');
                     uptimeField.setValue(me.formatUptime(data.uptime));
                     memoryField.setValue(me.formatBytes(data.memory || 0));
+                    
+                    // 检查透明代理状态
+                    me.checkTransparentProxyStatus();
                 } else {
                     statusField.setValue('已停止');
                 }
             },
             failure: function(response) {
                 statusField.setValue('连接失败');
+            }
+        });
+    },
+
+    checkTransparentProxyStatus: function() {
+        var me = this;
+        
+        PVE.Utils.API2Request({
+            url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/config',
+            method: 'GET',
+            success: function(response) {
+                var data = response.result.data;
+                var config = data.config || '';
+                
+                // 检查配置中是否启用了透明代理
+                var tunEnabled = config.includes('tun:') && config.includes('enable: true');
+                var checkbox = Ext.getCmp('tun_enable_checkbox');
+                if (checkbox) {
+                    checkbox.setValue(tunEnabled);
+                }
+            },
+            failure: function(response) {
+                // 如果获取配置失败，默认设置为关闭状态
+                var checkbox = Ext.getCmp('tun_enable_checkbox');
+                if (checkbox) {
+                    checkbox.setValue(false);
+                }
             }
         });
     },
@@ -339,6 +384,47 @@ Ext.define('PVE.panel.Clash', {
                         Ext.Msg.alert('错误', '透明代理配置失败');
                     }
                 });
+            }
+        });
+    },
+
+    toggleTransparentProxy: function(enable) {
+        var me = this;
+        
+        var action = enable ? '启用' : '禁用';
+        var message = enable ? 
+            '确定要启用透明代理吗？这将修改 Clash 配置并重启服务。' : 
+            '确定要禁用透明代理吗？这将修改 Clash 配置并重启服务。';
+        
+        Ext.Msg.confirm('确认', message, function(btn) {
+            if (btn === 'yes') {
+                PVE.Utils.API2Request({
+                    url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/toggle-transparent-proxy',
+                    method: 'POST',
+                    params: {
+                        enable: enable
+                    },
+                    success: function(response) {
+                        var data = response.result.data;
+                        if (data.success) {
+                            Ext.Msg.alert('成功', '透明代理已' + action);
+                            // 更新复选框状态
+                            Ext.getCmp('tun_enable_checkbox').setValue(enable);
+                        } else {
+                            Ext.Msg.alert('错误', '操作失败: ' + (data.error || '未知错误'));
+                            // 恢复复选框状态
+                            Ext.getCmp('tun_enable_checkbox').setValue(!enable);
+                        }
+                    },
+                    failure: function(response) {
+                        Ext.Msg.alert('错误', '操作失败，请检查网络连接');
+                        // 恢复复选框状态
+                        Ext.getCmp('tun_enable_checkbox').setValue(!enable);
+                    }
+                });
+            } else {
+                // 用户取消，恢复复选框状态
+                Ext.getCmp('tun_enable_checkbox').setValue(!enable);
             }
         });
     },

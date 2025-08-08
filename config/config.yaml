@@ -23,7 +23,7 @@ dns:
 
 # 透明代理配置
 tun:
-  enable: true
+  enable: false  # 🔹 默认关闭透明代理，用户手动开启
   stack: system
   dns-hijack:
     - any:53

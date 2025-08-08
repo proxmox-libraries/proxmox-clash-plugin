@@ -414,6 +414,81 @@ __PACKAGE__->register_method ({
     }});
 
 __PACKAGE__->register_method ({
+    name => 'toggle_transparent_proxy',
+    path => 'toggle-transparent-proxy',
+    method => 'POST',
+    description => "切换透明代理状态",
+    permissions => {
+        user => 'all',
+    },
+    parameters => {
+        additionalProperties => 0,
+        properties => {
+            enable => {
+                type => 'boolean',
+                description => '是否启用透明代理',
+            },
+        },
+    },
+    returns => { type => 'object' },
+    code => sub {
+        my ($param) = @_;
+        
+        my $enable = $param->{enable};
+        my $action = $enable ? '启用' : '禁用';
+        
+        log_message('INFO', "开始${action}透明代理");
+        
+        # 读取当前配置
+        my $config_file = "$CLASH_CONFIG_DIR/config.yaml";
+        if (!-f $config_file) {
+            log_message('ERROR', "配置文件不存在: $config_file");
+            return { success => 0, error => "配置文件不存在" };
+        }
+        
+        # 读取配置文件
+        my $config_content;
+        eval {
+            $config_content = PVE::Tools::file_get_contents($config_file);
+        };
+        if ($@) {
+            log_message('ERROR', "读取配置文件失败: $@");
+            return { success => 0, error => "读取配置文件失败" };
+        }
+        
+        # 修改 TUN 配置
+        if ($enable) {
+            # 启用透明代理
+            $config_content =~ s/tun:\s*\n\s*enable:\s*false/tun:\n  enable: true/g;
+        } else {
+            # 禁用透明代理
+            $config_content =~ s/tun:\s*\n\s*enable:\s*true/tun:\n  enable: false/g;
+        }
+        
+        # 写回配置文件
+        eval {
+            PVE::Tools::file_set_contents($config_file, $config_content);
+        };
+        if ($@) {
+            log_message('ERROR', "写入配置文件失败: $@");
+            return { success => 0, error => "写入配置文件失败" };
+        }
+        
+        # 重启 Clash 服务
+        log_message('INFO', "重启 Clash 服务以应用配置");
+        eval {
+            PVE::Tools::run_command("systemctl restart clash-meta");
+        };
+        if ($@) {
+            log_message('ERROR', "重启服务失败: $@");
+            return { success => 0, error => "重启服务失败" };
+        }
+        
+        log_message('INFO', "透明代理${action}成功");
+        return { success => 1, message => "透明代理已${action}" };
+    }});
+
+__PACKAGE__->register_method ({
     name => 'get_traffic',
     path => 'traffic',
     method => 'GET',

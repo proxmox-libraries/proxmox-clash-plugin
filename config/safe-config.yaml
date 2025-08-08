@@ -1,0 +1,87 @@
+# 安全的 Clash.Meta 配置文件
+# 确保代理不可用时不会导致断网
+
+mixed-port: 7890
+allow-lan: true
+bind-address: '*'
+mode: rule
+log-level: info
+external-controller: 127.0.0.1:9090
+secret: ""
+
+# DNS 配置 - 多层备用
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  enhanced-mode: redir-host
+  nameserver:
+    - 223.5.5.5      # 阿里 DNS
+    - 119.29.29.29   # 腾讯 DNS
+  fallback:
+    - 8.8.8.8        # Google DNS
+    - 1.1.1.1        # Cloudflare DNS
+    - 208.67.222.222 # OpenDNS
+
+# 透明代理配置 - 默认关闭
+tun:
+  enable: false  # 🔹 默认关闭透明代理，用户手动开启
+  stack: system
+  dns-hijack:
+    - any:53
+  auto-route: true
+  auto-detect-interface: true
+  # 启用故障转移
+  strict-route: false
+
+# 代理配置
+proxies:
+  - name: "DIRECT"
+    type: direct
+
+# 代理组配置 - 关键的故障转移设置
+proxy-groups:
+  - name: "Proxy"
+    type: fallback           # 🔹 故障转移模式
+    proxies:
+      - "auto-select"
+      - "DIRECT"             # 🔹 最后备用直连
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+    
+  - name: "auto-select"
+    type: url-test           # 🔹 自动选择最快的
+    proxies:
+      - "DIRECT"             # 🔹 包含直连作为备选
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+    tolerance: 100
+
+# 安全的规则配置
+rules:
+  # 本地网络直连 - 确保管理访问
+  - IP-CIDR,127.0.0.0/8,DIRECT
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT
+  - IP-CIDR,172.16.0.0/12,DIRECT
+  
+  # Proxmox 管理端口直连
+  - DST-PORT,8006,DIRECT
+  - DST-PORT,22,DIRECT
+  
+  # 国内网站直连
+  - DOMAIN-SUFFIX,cn,DIRECT
+  - DOMAIN-SUFFIX,baidu.com,DIRECT
+  - DOMAIN-SUFFIX,qq.com,DIRECT
+  - DOMAIN-SUFFIX,taobao.com,DIRECT
+  - DOMAIN-SUFFIX,alibaba.com,DIRECT
+  
+  # 需要代理的网站
+  - DOMAIN-SUFFIX,google.com,Proxy
+  - DOMAIN-SUFFIX,facebook.com,Proxy
+  - DOMAIN-SUFFIX,youtube.com,Proxy
+  - DOMAIN-SUFFIX,twitter.com,Proxy
+  - DOMAIN-SUFFIX,github.com,Proxy
+  - DOMAIN-SUFFIX,githubusercontent.com,Proxy
+  
+  # 🔹 关键：最后的兜底规则 - 确保总是能连网
+  - MATCH,DIRECT
