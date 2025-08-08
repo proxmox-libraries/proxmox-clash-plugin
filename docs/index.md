@@ -1,5 +1,5 @@
 ---
-layout: page
+layout: default
 title: Proxmox Clash 插件文档
 ---
 

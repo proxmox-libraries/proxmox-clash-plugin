@@ -11,9 +11,6 @@ url: "https://proxmox-libraries.github.io"
 # 主题设置
 theme: jekyll-theme-cayman
 
-# 侧边栏配置
-show_sidebar: true
-
 # 插件
 plugins:
   - jekyll-relative-links
@@ -36,4 +33,4 @@ defaults:
       path: ""
       type: "pages"
     values:
-      layout: "page"
+      layout: "default"
