@@ -750,7 +750,7 @@ Ext.onReady(function() {
                 if (!store) { return false; }
                 var root = store.getRootNode ? store.getRootNode() : (store.getRoot ? store.getRoot() : null);
                 if (!root) { return false; }
-                // 已存在则不重复添加
+                // 已存在则不重复添加（位置无所谓，直接追加到末尾）
                 var exists = null;
                 if (root.findChild) { exists = root.findChild('text', 'Clash', true) || root.findChild('text', 'Clash 控制', true); }
                 if (!exists) {
