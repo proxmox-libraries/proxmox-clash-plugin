@@ -218,16 +218,25 @@ download_mihomo() {
     local asset_url=""
     local api_json
     api_json=$(curl -sSL --connect-timeout 15 "$api" 2>/dev/null || echo "")
+    # 如果直连 API 失败，尝试镜像 API
+    if [ -z "$api_json" ] || echo "$api_json" | grep -qi 'rate limit exceeded'; then
+        api_json=$(curl -sSL --connect-timeout 15 "https://mirror.ghproxy.com/https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" 2>/dev/null || echo "")
+    fi
     if [ -n "$api_json" ] && command -v jq >/dev/null 2>&1; then
         tag=$(echo "$api_json" | jq -r '.tag_name // empty')
-        # 依次匹配：非压缩、非压缩-compatible、.gz、.gz-compatible
+        # 按优先级匹配 linux-{arch} 的 .gz 资产
+        # 1) 纯净命名：mihomo-linux-{arch}-<ver>.gz（不含 -v[1-3]- / -goXXX- / -compatible-）
+        # 2) compatible 变体：mihomo-linux-{arch}-compatible-<ver>.gz
+        # 3) v1/v2/v3 变体：mihomo-linux-{arch}-v[1-3]-<ver>.gz（可能带 goXXX）
         asset_name=$(echo "$api_json" | jq -r --arg a "$arch" '
-            [
-              (.assets[] | select(.name=="mihomo-linux-\($a)") | .name),
-              (.assets[] | select(.name=="mihomo-linux-\($a)-compatible") | .name),
-              (.assets[] | select(.name=="mihomo-linux-\($a).gz") | .name),
-              (.assets[] | select(.name=="mihomo-linux-\($a)-compatible.gz") | .name)
-            ] | map(select(. != null)) | .[0] // empty')
+          (
+            .assets[] | select((.name | test("^mihomo-linux-\($a)-v[0-9].*\\.gz$"))
+                                and (.name | test("-v[123]-|go[0-9]{3}-|compatible-") | not)) | .name
+          ),(
+            .assets[] | select(.name | test("^mihomo-linux-\($a)-compatible-.*\\.gz$")) | .name
+          ),(
+            .assets[] | select(.name | test("^mihomo-linux-\($a)-(v[123]-|v[0-9].*-v[123]-).*(\\.gz)$")) | .name
+          ) | select(. != null) | .[0] // empty')
         if [ -n "$asset_name" ] && [ -n "$tag" ]; then
             asset_url=$(echo "$api_json" | jq -r --arg n "$asset_name" '.assets[] | select(.name==$n) | .browser_download_url' | head -n1)
             log_info "最新 Release: $tag，资产: $asset_name"
