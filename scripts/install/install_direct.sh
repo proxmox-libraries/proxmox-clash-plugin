@@ -64,6 +64,20 @@ log_step() {
     echo -e "${BLUE}[STEP]${NC} $1"
 }
 
+# 检测 PVE UI 目录（PVE 8 使用 js，PVE 7 使用 ext6）
+detect_pve_ui_dir() {
+    if [ -d "/usr/share/pve-manager/js" ]; then
+        echo "/usr/share/pve-manager/js"
+        return 0
+    fi
+    if [ -d "/usr/share/pve-manager/ext6" ]; then
+        echo "/usr/share/pve-manager/ext6"
+        return 0
+    fi
+    echo ""
+    return 1
+}
+
 # 检查依赖
 check_dependencies() {
     log_step "检查系统依赖..."
@@ -142,10 +156,16 @@ install_api() {
 # 安装 UI 组件
 install_ui() {
     log_step "安装 UI 组件..."
-    
+    local ui_dir
+    ui_dir=$(detect_pve_ui_dir)
+    if [ -z "$ui_dir" ]; then
+        log_warn "⚠️  未找到 PVE UI 目录（/usr/share/pve-manager/js 或 ext6），跳过 UI 安装"
+        return 0
+    fi
+
     if [ -f "$INSTALL_DIR/ui/pve-panel-clash.js" ]; then
-        sudo cp "$INSTALL_DIR/ui/pve-panel-clash.js" "/usr/share/pve-manager/ext6/"
-        log_info "✅ UI 组件已安装"
+        sudo cp "$INSTALL_DIR/ui/pve-panel-clash.js" "$ui_dir/"
+        log_info "✅ UI 组件已安装到: $ui_dir"
     else
         log_warn "⚠️  UI 文件不存在"
     fi

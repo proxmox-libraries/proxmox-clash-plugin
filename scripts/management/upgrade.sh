@@ -16,7 +16,21 @@ log_message() {
 # 配置变量
 CLASH_DIR="/opt/proxmox-clash"
 API_DIR="/usr/share/perl5/PVE/API2"
-UI_DIR="/usr/share/pve-manager/ext6"
+# 自动检测 PVE UI 目录（PVE 8 使用 js，PVE 7 使用 ext6）
+detect_pve_ui_dir() {
+    if [ -d "/usr/share/pve-manager/js" ]; then
+        echo "/usr/share/pve-manager/js"
+        return 0
+    fi
+    if [ -d "/usr/share/pve-manager/ext6" ]; then
+        echo "/usr/share/pve-manager/ext6"
+        return 0
+    fi
+    echo ""
+    return 1
+}
+
+UI_DIR="$(detect_pve_ui_dir)"
 BACKUP_DIR="/opt/proxmox-clash/backup"
 CURRENT_VERSION_FILE="$CLASH_DIR/version"
 GITHUB_REPO="proxmox-libraries/proxmox-clash-plugin"
@@ -333,9 +347,11 @@ perform_upgrade() {
     fi
     
     # 安装 UI 插件
-    if [ -f "$temp_dir/ui/pve-panel-clash.js" ]; then
+    if [ -n "$UI_DIR" ] && [ -f "$temp_dir/ui/pve-panel-clash.js" ]; then
         cp "$temp_dir/ui/pve-panel-clash.js" "$UI_DIR/"
-        log_message "DEBUG" "更新 UI 插件"
+        log_message "DEBUG" "更新 UI 插件到 $UI_DIR"
+    else
+        log_message "WARN" "未找到 UI 目录或 UI 文件，跳过 UI 更新"
     fi
     
     # 更新脚本

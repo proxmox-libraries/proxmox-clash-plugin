@@ -5,7 +5,21 @@ set -e
 
 CLASH_DIR="/opt/proxmox-clash"
 API_DIR="/usr/share/perl5/PVE/API2"
-UI_DIR="/usr/share/pve-manager/ext6"
+# 自动检测 PVE UI 目录（PVE 8 使用 js，PVE 7 使用 ext6）
+detect_pve_ui_dir() {
+    if [ -d "/usr/share/pve-manager/js" ]; then
+        echo "/usr/share/pve-manager/js"
+        return 0
+    fi
+    if [ -d "/usr/share/pve-manager/ext6" ]; then
+        echo "/usr/share/pve-manager/ext6"
+        return 0
+    fi
+    echo ""
+    return 1
+}
+
+UI_DIR="$(detect_pve_ui_dir)"
 
 echo "🗑️ 开始卸载 Proxmox Clash 插件..."
 
@@ -31,7 +45,11 @@ rm -f "$API_DIR/Clash.pm"
 
 # 删除前端插件
 echo "🗑️ 删除前端插件..."
-rm -f "$UI_DIR/pve-panel-clash.js"
+if [ -n "$UI_DIR" ]; then
+    rm -f "$UI_DIR/pve-panel-clash.js"
+else
+    echo "⚠️  未找到 PVE UI 目录，跳过删除 UI 插件"
+fi
 
 # 删除主目录
 echo "🗑️ 删除主目录..."
