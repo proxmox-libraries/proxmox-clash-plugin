@@ -210,23 +210,73 @@ download_mihomo() {
     esac
 
     local target="$INSTALL_DIR/clash-meta"
-    local urls=(
+    local api="https://api.github.com/repos/MetaCubeX/mihomo/releases/latest"
+
+    # 优先通过 GitHub API 精确获取最新 Release 版本与资产
+    local tag=""
+    local asset_name=""
+    local asset_url=""
+    local api_json
+    api_json=$(curl -fsSL --connect-timeout 15 "$api" 2>/dev/null || echo "")
+    if [ -n "$api_json" ] && command -v jq >/dev/null 2>&1; then
+        tag=$(echo "$api_json" | jq -r '.tag_name // empty')
+        # 优先非压缩二进制，其次 .gz
+        asset_name=$(echo "$api_json" | jq -r --arg a "$arch" '
+            .assets[] | select(.name=="mihomo-linux-\($a)" or .name=="mihomo-linux-\($a).gz") | .name' | head -n1)
+        if [ -n "$asset_name" ] && [ -n "$tag" ]; then
+            asset_url=$(echo "$api_json" | jq -r --arg n "$asset_name" '.assets[] | select(.name==$n) | .browser_download_url' | head -n1)
+            log_info "最新 Release: $tag，资产: $asset_name"
+        fi
+    fi
+
+    # 构造下载候选 URL 列表
+    local urls=()
+    if [ -n "$asset_url" ]; then
+        urls+=("$asset_url")
+        if [ -n "$tag" ] && [ -n "$asset_name" ]; then
+            urls+=("https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/download/$tag/$asset_name")
+        fi
+    fi
+    # 兜底：使用 latest/download（可能被限流或被代理拦截）
+    urls+=(
         "https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch"
         "https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch"
+        "https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch.gz"
+        "https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch.gz"
     )
 
+    # 尝试下载
+    local tmpfile
+    tmpfile=$(mktemp)
     local downloaded=false
+    local used_url=""
     for u in "${urls[@]}"; do
         log_info "尝试下载: $u"
-        if curl -fL --retry 3 --connect-timeout 15 -o "$target" "$u"; then
+        if curl -fL --retry 3 --connect-timeout 20 -o "$tmpfile" "$u"; then
             downloaded=true
+            used_url="$u"
             break
         fi
     done
 
     if [ "$downloaded" != true ]; then
+        rm -f "$tmpfile"
         log_error "❌ Clash.Meta 下载失败（主源和镜像均不可用）"
         exit 1
+    fi
+
+    # 如果是 .gz，解压到目标
+    if echo "$used_url" | grep -q '\\.gz$'; then
+        if command -v gzip >/dev/null 2>&1; then
+            gzip -dc "$tmpfile" | sudo tee "$target" >/dev/null
+            rm -f "$tmpfile"
+        else
+            log_error "❌ 系统缺少 gzip，无法解压 .gz 格式"
+            rm -f "$tmpfile"
+            exit 1
+        fi
+    else
+        sudo mv "$tmpfile" "$target"
     fi
 
     # 基本校验：尺寸和文件类型
@@ -250,7 +300,11 @@ download_mihomo() {
     fi
 
     sudo chmod +x "$target"
-    log_info "✅ Clash.Meta 下载成功（$arch, 大小: $((size/1024)) KB）"
+    if [ -n "$tag" ]; then
+        log_info "✅ Clash.Meta 下载成功（$arch, $tag, 大小: $((size/1024)) KB）"
+    else
+        log_info "✅ Clash.Meta 下载成功（$arch, 大小: $((size/1024)) KB）"
+    fi
 }
 
 # 创建配置文件
