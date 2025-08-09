@@ -189,15 +189,68 @@ install_service() {
 download_mihomo() {
     log_step "下载 Clash.Meta (mihomo)..."
     
-    local mihomo_url="https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-amd64"
-    
-    if curl -L -o "$INSTALL_DIR/clash-meta" "$mihomo_url"; then
-        sudo chmod +x "$INSTALL_DIR/clash-meta"
-        log_info "✅ Clash.Meta 下载成功"
-    else
-        log_error "❌ Clash.Meta 下载失败"
+    # 检测架构
+    local uname_arch
+    uname_arch=$(uname -m)
+    local arch=""
+    case "$uname_arch" in
+        x86_64)
+            arch="amd64"
+            ;;
+        aarch64|arm64)
+            arch="arm64"
+            ;;
+        armv7l|armv7)
+            arch="armv7"
+            ;;
+        *)
+            log_warn "⚠️ 未知架构: $uname_arch，默认使用 amd64。如运行失败请手动替换内核。"
+            arch="amd64"
+            ;;
+    esac
+
+    local target="$INSTALL_DIR/clash-meta"
+    local urls=(
+        "https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch"
+        "https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch"
+    )
+
+    local downloaded=false
+    for u in "${urls[@]}"; do
+        log_info "尝试下载: $u"
+        if curl -fL --retry 3 --connect-timeout 15 -o "$target" "$u"; then
+            downloaded=true
+            break
+        fi
+    done
+
+    if [ "$downloaded" != true ]; then
+        log_error "❌ Clash.Meta 下载失败（主源和镜像均不可用）"
         exit 1
     fi
+
+    # 基本校验：尺寸和文件类型
+    local size
+    size=$(stat -c %s "$target" 2>/dev/null || stat -f %z "$target" 2>/dev/null || echo 0)
+    if [ -z "$size" ] || [ "$size" -lt 1000000 ]; then
+        log_error "❌ 下载的 Clash.Meta 文件异常（大小 $size 字节），请检查网络/代理。"
+        exit 1
+    fi
+
+    if command -v file >/dev/null 2>&1; then
+        local ftype
+        ftype=$(file "$target" 2>/dev/null || echo "")
+        case "$ftype" in
+            *ELF*) ;;
+            *)
+                log_error "❌ Clash.Meta 文件类型异常: $ftype"
+                exit 1
+                ;;
+        esac
+    fi
+
+    sudo chmod +x "$target"
+    log_info "✅ Clash.Meta 下载成功（$arch, 大小: $((size/1024)) KB）"
 }
 
 # 创建配置文件
