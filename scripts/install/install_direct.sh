@@ -8,7 +8,38 @@ set -e
 # 配置变量
 REPO_URL="https://github.com/proxmox-libraries/proxmox-clash-plugin"
 INSTALL_DIR="/opt/proxmox-clash"
-VERSION="${1:-latest}"
+
+# 参数解析：兼容 -l/--latest 与 -v/--version，也支持直接传入版本号
+parse_args() {
+    local arg1="$1"
+    local arg2="$2"
+
+    if [ -z "$arg1" ]; then
+        VERSION="latest"
+        return
+    fi
+
+    case "$arg1" in
+        -l|--latest)
+            VERSION="latest"
+            ;;
+        -v|--version)
+            if [ -z "$arg2" ]; then
+                log_error "必须在 -v/--version 后提供版本号，例如: -v v1.2.0"
+                exit 1
+            fi
+            VERSION="$arg2"
+            ;;
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        *)
+            # 兼容直接传入版本字符串
+            VERSION="$arg1"
+            ;;
+    esac
+}
 
 # 颜色输出
 RED='\033[0;31m'
@@ -224,6 +255,7 @@ show_result() {
 # 主函数
 main() {
     echo "🚀 Proxmox Clash 插件直接安装脚本"
+    parse_args "$1" "$2"
     echo "版本: $VERSION"
     echo ""
     

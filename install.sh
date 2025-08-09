@@ -129,24 +129,50 @@ show_help() {
 main() {
     # 显示欢迎信息
     show_welcome
-    
-    # 检查参数
+
+    # 解析参数并规范化为 install_direct.sh 可识别的形式
+    local normalized_version=""
+
     if [ $# -eq 0 ]; then
         log_info "未指定版本，将安装最新版本"
-        download_and_run -l
+        normalized_version="latest"
     else
         case "$1" in
             -h|--help)
                 show_help
                 exit 0
                 ;;
+            -l|--latest)
+                normalized_version="latest"
+                ;;
+            -v|--version)
+                if [ -z "$2" ]; then
+                    log_error "必须在 -v/--version 后提供版本号，例如: -v v1.2.0"
+                    exit 1
+                fi
+                normalized_version="$2"
+                ;;
+            -c|--check)
+                # 简易检查：列出 GitHub Releases 版本
+                log_step "检查可用版本..."
+                curl -s https://api.github.com/repos/$GITHUB_REPO/releases | jq -r '.[].tag_name' | grep -E '^v' | cat
+                exit 0
+                ;;
             *)
-                # 检查系统要求
-                check_system
-                # 下载并运行安装脚本
-                download_and_run "$@"
+                # 兼容直接传入具体版本
+                normalized_version="$1"
                 ;;
         esac
+    fi
+
+    # 检查系统要求
+    check_system
+
+    # 下载并运行安装脚本（只传递规范化后的版本参数）
+    if [ -n "$normalized_version" ]; then
+        download_and_run "$normalized_version"
+    else
+        download_and_run
     fi
 }
 
