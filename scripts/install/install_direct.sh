@@ -217,12 +217,17 @@ download_mihomo() {
     local asset_name=""
     local asset_url=""
     local api_json
-    api_json=$(curl -fsSL --connect-timeout 15 "$api" 2>/dev/null || echo "")
+    api_json=$(curl -sSL --connect-timeout 15 "$api" 2>/dev/null || echo "")
     if [ -n "$api_json" ] && command -v jq >/dev/null 2>&1; then
         tag=$(echo "$api_json" | jq -r '.tag_name // empty')
-        # 优先非压缩二进制，其次 .gz
+        # 依次匹配：非压缩、非压缩-compatible、.gz、.gz-compatible
         asset_name=$(echo "$api_json" | jq -r --arg a "$arch" '
-            .assets[] | select(.name=="mihomo-linux-\($a)" or .name=="mihomo-linux-\($a).gz") | .name' | head -n1)
+            [
+              (.assets[] | select(.name=="mihomo-linux-\($a)") | .name),
+              (.assets[] | select(.name=="mihomo-linux-\($a)-compatible") | .name),
+              (.assets[] | select(.name=="mihomo-linux-\($a).gz") | .name),
+              (.assets[] | select(.name=="mihomo-linux-\($a)-compatible.gz") | .name)
+            ] | map(select(. != null)) | .[0] // empty')
         if [ -n "$asset_name" ] && [ -n "$tag" ]; then
             asset_url=$(echo "$api_json" | jq -r --arg n "$asset_name" '.assets[] | select(.name==$n) | .browser_download_url' | head -n1)
             log_info "最新 Release: $tag，资产: $asset_name"
@@ -240,9 +245,13 @@ download_mihomo() {
     # 兜底：使用 latest/download（可能被限流或被代理拦截）
     urls+=(
         "https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch"
-        "https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch"
+        "https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch-compatible"
         "https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch.gz"
+        "https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch-compatible.gz"
+        "https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch"
+        "https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch-compatible"
         "https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch.gz"
+        "https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch-compatible.gz"
     )
 
     # 尝试下载
