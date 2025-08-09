@@ -222,8 +222,9 @@ download_mihomo() {
     if [ -z "$api_json" ] || echo "$api_json" | grep -qi 'rate limit exceeded'; then
         api_json=$(curl -sSL --connect-timeout 15 "https://mirror.ghproxy.com/https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" 2>/dev/null || echo "")
     fi
-    if [ -n "$api_json" ] && command -v jq >/dev/null 2>&1; then
-        tag=$(echo "$api_json" | jq -r '.tag_name // empty')
+    if [ -n "$api_json" ] && command -v jq >/dev/null 2>&1 \
+       && echo "$api_json" | jq -e 'type=="object" and (.assets|type=="array")' >/dev/null 2>&1; then
+        tag=$(echo "$api_json" | jq -r '.tag_name // empty' 2>/dev/null || echo "")
         # 按优先级匹配 linux-{arch} 的 .gz 资产
         # 1) 纯净命名：mihomo-linux-{arch}-<ver>.gz（不含 -v[1-3]- / -goXXX- / -compatible-）
         # 2) compatible 变体：mihomo-linux-{arch}-compatible-<ver>.gz
@@ -236,9 +237,9 @@ download_mihomo() {
             .assets[] | select(.name | test("^mihomo-linux-\($a)-compatible-.*\\.gz$")) | .name
           ),(
             .assets[] | select(.name | test("^mihomo-linux-\($a)-(v[123]-|v[0-9].*-v[123]-).*(\\.gz)$")) | .name
-          ) | select(. != null) | .[0] // empty')
+          ) | select(. != null) | .[0] // empty' 2>/dev/null || echo "")
         if [ -n "$asset_name" ] && [ -n "$tag" ]; then
-            asset_url=$(echo "$api_json" | jq -r --arg n "$asset_name" '.assets[] | select(.name==$n) | .browser_download_url' | head -n1)
+            asset_url=$(echo "$api_json" | jq -r --arg n "$asset_name" '.assets[] | select(.name==$n) | .browser_download_url' 2>/dev/null | head -n1 || echo "")
             log_info "最新 Release: $tag，资产: $asset_name"
         fi
     fi
