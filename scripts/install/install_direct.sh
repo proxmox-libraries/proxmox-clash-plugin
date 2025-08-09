@@ -10,35 +10,45 @@ REPO_URL="https://github.com/proxmox-libraries/proxmox-clash-plugin"
 INSTALL_DIR="/opt/proxmox-clash"
 
 # 参数解析：兼容 -l/--latest 与 -v/--version，也支持直接传入版本号
+KERNEL_VARIANT="v1"  # 默认选择 v1 变体
 parse_args() {
-    local arg1="$1"
-    local arg2="$2"
-
-    if [ -z "$arg1" ]; then
-        VERSION="latest"
-        return
-    fi
-
-    case "$arg1" in
-        -l|--latest)
-            VERSION="latest"
-            ;;
-        -v|--version)
-            if [ -z "$arg2" ]; then
-                log_error "必须在 -v/--version 后提供版本号，例如: -v v1.2.0"
-                exit 1
-            fi
-            VERSION="$arg2"
-            ;;
-        -h|--help)
-            show_help
-            exit 0
-            ;;
-        *)
-            # 兼容直接传入版本字符串
-            VERSION="$arg1"
-            ;;
-    esac
+    VERSION="latest"
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -l|--latest)
+                VERSION="latest"
+                shift
+                ;;
+            -v|--version)
+                if [ -z "$2" ]; then
+                    log_error "必须在 -v/--version 后提供版本号，例如: -v v1.2.0"
+                    exit 1
+                fi
+                VERSION="$2"
+                shift 2
+                ;;
+            --kernel-variant|--variant)
+                if [ -z "$2" ]; then
+                    log_error "必须在 --kernel-variant 后提供变体：v1|v2|v3|compatible|auto"
+                    exit 1
+                fi
+                case "$2" in
+                    v1|v2|v3|compatible|auto) KERNEL_VARIANT="$2" ;;
+                    *) log_error "无效的变体：$2（可选：v1|v2|v3|compatible|auto）"; exit 1 ;;
+                esac
+                shift 2
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                # 兼容直接传入版本字符串
+                VERSION="$1"
+                shift
+                ;;
+        esac
+    done
 }
 
 # 颜色输出
@@ -225,19 +235,47 @@ download_mihomo() {
     if [ -n "$api_json" ] && command -v jq >/dev/null 2>&1 \
        && echo "$api_json" | jq -e 'type=="object" and (.assets|type=="array")' >/dev/null 2>&1; then
         tag=$(echo "$api_json" | jq -r '.tag_name // empty' 2>/dev/null || echo "")
-        # 按优先级匹配 linux-{arch} 的 .gz 资产
-        # 1) 纯净命名：mihomo-linux-{arch}-<ver>.gz（不含 -v[1-3]- / -goXXX- / -compatible-）
-        # 2) compatible 变体：mihomo-linux-{arch}-compatible-<ver>.gz
-        # 3) v1/v2/v3 变体：mihomo-linux-{arch}-v[1-3]-<ver>.gz（可能带 goXXX）
-        asset_name=$(echo "$api_json" | jq -r --arg a "$arch" '
-          (
-            .assets[] | select((.name | test("^mihomo-linux-\($a)-v[0-9].*\\.gz$"))
-                                and (.name | test("-v[123]-|go[0-9]{3}-|compatible-") | not)) | .name
-          ),(
-            .assets[] | select(.name | test("^mihomo-linux-\($a)-compatible-.*\\.gz$")) | .name
-          ),(
-            .assets[] | select(.name | test("^mihomo-linux-\($a)-(v[123]-|v[0-9].*-v[123]-).*(\\.gz)$")) | .name
-          ) | select(. != null) | .[0] // empty' 2>/dev/null || echo "")
+
+        # 根据变体构造匹配序列
+        local jq_filter=""
+        case "$KERNEL_VARIANT" in
+            v1)
+                jq_filter='(
+                  .assets[] | select(.name | test("^mihomo-linux-\\($a)-v1\\.[^/]*\\.gz$")) | .name
+                ),(
+                  .assets[] | select(.name | test("^mihomo-linux-\\($a)-v1-.*\\.gz$")) | .name
+                ),(
+                  .assets[] | select(.name | test("^mihomo-linux-\\($a)-compatible-.*\\.gz$")) | .name
+                )'
+                ;;
+            v2)
+                jq_filter='(
+                  .assets[] | select(.name | test("^mihomo-linux-\\($a)-v2.*\\.gz$")) | .name
+                )'
+                ;;
+            v3)
+                jq_filter='(
+                  .assets[] | select(.name | test("^mihomo-linux-\\($a)-v3.*\\.gz$")) | .name
+                )'
+                ;;
+            compatible)
+                jq_filter='(
+                  .assets[] | select(.name | test("^mihomo-linux-\\($a)-compatible-.*\\.gz$")) | .name
+                )'
+                ;;
+            auto)
+                jq_filter='(
+                  .assets[] | select((.name | test("^mihomo-linux-\\($a)-v[0-9].*\\.gz$"))
+                                      and (.name | test("-v[123]-|go[0-9]{3}-|compatible-") | not)) | .name
+                ),(
+                  .assets[] | select(.name | test("^mihomo-linux-\\($a)-compatible-.*\\.gz$")) | .name
+                ),(
+                  .assets[] | select(.name | test("^mihomo-linux-\\($a)-(v[123]-|v[0-9].*-v[123]-).*(\\.gz)$")) | .name
+                )'
+                ;;
+        esac
+
+        asset_name=$(echo "$api_json" | jq -r --arg a "$arch" "${jq_filter} | select(. != null) | .[0] // empty" 2>/dev/null || echo "")
         if [ -n "$asset_name" ] && [ -n "$tag" ]; then
             asset_url=$(echo "$api_json" | jq -r --arg n "$asset_name" '.assets[] | select(.name==$n) | .browser_download_url' 2>/dev/null | head -n1 || echo "")
             log_info "最新 Release: $tag，资产: $asset_name"
