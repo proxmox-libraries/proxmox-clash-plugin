@@ -445,7 +445,7 @@ download_mihomo() {
     fi
 
     # 如果是 .gz，解压到目标
-    if echo "$used_url" | grep -q '\\.gz$'; then
+    if echo "$used_url" | grep -q '\.gz$'; then
         if command -v gzip >/dev/null 2>&1; then
             gzip -dc "$tmpfile" | sudo tee "$target" >/dev/null
             rm -f "$tmpfile"
@@ -456,6 +456,23 @@ download_mihomo() {
         fi
     else
         sudo mv "$tmpfile" "$target"
+    fi
+
+    # 保险：若目标仍是 gzip 压缩数据，尝试再解压一次
+    if command -v file >/dev/null 2>&1; then
+        ftype=$(file "$target" 2>/dev/null || echo "")
+        case "$ftype" in
+            *gzip\ compressed\ data*)
+                if command -v gzip >/dev/null 2>&1; then
+                    tmp2=$(mktemp)
+                    if gzip -dc "$target" > "$tmp2" 2>/dev/null; then
+                        sudo mv "$tmp2" "$target"
+                    else
+                        rm -f "$tmp2"
+                    fi
+                fi
+                ;;
+        esac
     fi
 
     # 基本校验：尺寸和文件类型
