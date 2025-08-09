@@ -686,7 +686,7 @@ Ext.define('PVE.dc.Menu', {
     }
 }); 
 
-// PVE 8.4 兼容注入：如果不存在 PVE.dc.Menu，则在顶部工具栏添加按钮
+// PVE 8.4 兼容注入：如果不存在 PVE.dc.Menu，则在侧边导航（优先）或顶部工具栏注入入口
 Ext.onReady(function() {
     try {
         if (!Ext.ClassManager.isCreated('PVE.dc.Menu')) {
@@ -713,21 +713,62 @@ Ext.onReady(function() {
                     }
                 });
                 if (topbar) {
-                    topbar.add({
+                    var clashBtn = {
                         text: 'Clash 控制',
                         iconCls: 'fa fa-cloud',
                         handler: createClashWindow
-                    });
+                    };
+                    // 尝试放在 Ceph 按钮后面
+                    var cephIndex = -1;
+                    if (topbar.items && topbar.items.items) {
+                        Ext.Array.each(topbar.items.items, function(it, idx) {
+                            if (it && it.text === 'Ceph') { cephIndex = idx; return false; }
+                        });
+                    }
+                    if (cephIndex >= 0) {
+                        topbar.insert(cephIndex + 1, clashBtn);
+                    } else {
+                        topbar.add(clashBtn);
+                    }
                     return true;
                 }
                 return false;
+            };
+
+            var tryAttachSideNav = function() {
+                // 查找左侧 treelist（class 包含 x-treelist-pve-nav）
+                var trees = Ext.ComponentQuery.query('treelist');
+                var target = null;
+                Ext.Array.each(trees, function(t) {
+                    if (t && t.getEl && t.getEl() && t.getEl().hasCls('x-treelist-pve-nav')) {
+                        target = t;
+                        return false;
+                    }
+                });
+                if (!target) { return false; }
+                var store = target.getStore ? target.getStore() : null;
+                if (!store) { return false; }
+                var root = store.getRootNode ? store.getRootNode() : (store.getRoot ? store.getRoot() : null);
+                if (!root) { return false; }
+                // 已存在则不重复添加
+                var exists = null;
+                if (root.findChild) { exists = root.findChild('text', 'Clash', true) || root.findChild('text', 'Clash 控制', true); }
+                if (!exists) {
+                    var node = root.appendChild({ text: 'Clash 控制', iconCls: 'fa fa-cloud', leaf: true });
+                    target.on('selectionchange', function(tl, nodeSel) {
+                        if (nodeSel && (nodeSel === node || nodeSel.get('text') === 'Clash 控制')) {
+                            createClashWindow();
+                        }
+                    });
+                }
+                return true;
             };
 
             var attempts = 0;
             var task = Ext.TaskManager.start({
                 run: function() {
                     attempts += 1;
-                    if (tryAttachTopButton() || attempts > 20) {
+                    if (tryAttachSideNav() || tryAttachTopButton() || attempts > 20) {
                         Ext.TaskManager.stop(task);
                     }
                 },
