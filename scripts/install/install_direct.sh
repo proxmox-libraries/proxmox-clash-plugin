@@ -118,19 +118,73 @@ download_files() {
     local temp_dir=$(mktemp -d)
     cd "$temp_dir"
     
-    if [ "$VERSION" = "latest" ]; then
-        # 下载最新版本
-        log_info "下载最新版本..."
-        curl -L -o project.tar.gz "$REPO_URL/archive/refs/heads/main.tar.gz"
+    # 规范化版本并打印完整下载链接
+    if [ -z "$VERSION" ] || [ "$VERSION" = "latest" ]; then
+        log_info "获取插件最新 Release tag..."
+        local api_json_tag
+        api_json_tag=$(curl -sSL --connect-timeout 15 "https://api.github.com/repos/proxmox-libraries/proxmox-clash-plugin/releases/latest" 2>/dev/null || echo "")
+        if [ -z "$api_json_tag" ] || echo "$api_json_tag" | grep -qi 'rate limit exceeded'; then
+            api_json_tag=$(curl -sSL --connect-timeout 15 "https://mirror.ghproxy.com/https://api.github.com/repos/proxmox-libraries/proxmox-clash-plugin/releases/latest" 2>/dev/null || echo "")
+        fi
+
+        local latest_tag=""
+        if command -v jq >/dev/null 2>&1 \
+           && echo "$api_json_tag" | jq -e 'type=="object" and has("tag_name")' >/dev/null 2>&1; then
+            latest_tag=$(echo "$api_json_tag" | jq -r '.tag_name // empty' 2>/dev/null || echo "")
+        fi
+
+        local url
+        if [ -n "$latest_tag" ]; then
+            log_info "最新 Release: $latest_tag"
+            url="$REPO_URL/archive/refs/tags/$latest_tag.tar.gz"
+        else
+            log_warn "无法获取最新 tag，回退到 main 分支"
+            url="$REPO_URL/archive/refs/heads/main.tar.gz"
+        fi
+        log_info "下载地址: $url"
+        if ! curl -fL --retry 3 -o project.tar.gz "$url"; then
+            log_error "❌ 下载失败: $url"
+            cd /
+            rm -rf "$temp_dir"
+            exit 1
+        fi
     else
-        # 下载指定版本
-        log_info "下载版本: $VERSION"
-        curl -L -o project.tar.gz "$REPO_URL/archive/refs/tags/$VERSION.tar.gz"
+        local ver="$VERSION"
+        local taguse="$ver"
+        # 标准化为以小写 v 开头；已含 v/V 则不重复添加，并统一小写
+        if [[ "$taguse" =~ ^[vV] ]]; then
+            taguse="v${taguse:1}"
+        else
+            taguse="v$taguse"
+        fi
+        log_info "下载版本: $taguse"
+        local url="$REPO_URL/archive/refs/tags/$taguse.tar.gz"
+        log_info "下载地址: $url"
+        if ! curl -fL --retry 3 -o project.tar.gz "$url"; then
+            log_error "❌ 指定版本下载失败: $ver"
+            cd /
+            rm -rf "$temp_dir"
+            exit 1
+        else
+            VERSION="$taguse"
+        fi
     fi
     
-    # 解压文件
+    # 校验压缩包并解压
+    if ! tar -tzf project.tar.gz >/dev/null 2>&1; then
+        log_error "❌ 下载的项目压缩包无效，请重试（可能被代理返回了错误页面）"
+        cd /
+        rm -rf "$temp_dir"
+        exit 1
+    fi
     tar -xzf project.tar.gz
-    local extracted_dir=$(ls -d proxmox-clash-plugin-*)
+    local extracted_dir=$(ls -d proxmox-clash-plugin-* 2>/dev/null | head -1)
+    if [ -z "$extracted_dir" ]; then
+        log_error "❌ 无法识别解压目录"
+        cd /
+        rm -rf "$temp_dir"
+        exit 1
+    fi
     
     # 创建安装目录
     sudo mkdir -p "$INSTALL_DIR"
@@ -357,6 +411,7 @@ download_mihomo() {
     fi
 
     sudo chmod +x "$target"
+    log_info "使用下载地址: $used_url"
     if [ -n "$tag" ]; then
         log_info "✅ Clash.Meta 下载成功（$arch, $tag, 大小: $((size/1024)) KB）"
     else
