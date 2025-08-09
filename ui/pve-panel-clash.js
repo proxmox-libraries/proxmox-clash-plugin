@@ -685,3 +685,56 @@ Ext.define('PVE.dc.Menu', {
         });
     }
 }); 
+
+// PVE 8.4 兼容注入：如果不存在 PVE.dc.Menu，则在顶部工具栏添加按钮
+Ext.onReady(function() {
+    try {
+        if (!Ext.ClassManager.isCreated('PVE.dc.Menu')) {
+            var createClashWindow = function() {
+                var win = Ext.create('Ext.window.Window', {
+                    title: 'Clash 控制面板',
+                    width: 1400,
+                    height: 900,
+                    layout: 'fit',
+                    items: [{ xtype: 'pveClashView' }],
+                    maximizable: true,
+                    resizable: true
+                });
+                win.show();
+            };
+
+            var tryAttachTopButton = function() {
+                var bars = Ext.ComponentQuery.query('toolbar');
+                var topbar = null;
+                Ext.Array.each(bars, function(tb) {
+                    if ((tb.dock && tb.dock === 'top') || (tb.region && tb.region === 'north')) {
+                        topbar = tb;
+                        return false;
+                    }
+                });
+                if (topbar) {
+                    topbar.add({
+                        text: 'Clash 控制',
+                        iconCls: 'fa fa-cloud',
+                        handler: createClashWindow
+                    });
+                    return true;
+                }
+                return false;
+            };
+
+            var attempts = 0;
+            var task = Ext.TaskManager.start({
+                run: function() {
+                    attempts += 1;
+                    if (tryAttachTopButton() || attempts > 20) {
+                        Ext.TaskManager.stop(task);
+                    }
+                },
+                interval: 500
+            });
+        }
+    } catch (e) {
+        // 忽略
+    }
+});
