@@ -329,10 +329,25 @@ download_mihomo() {
                 ;;
         esac
 
-        asset_name=$(echo "$api_json" | jq -r --arg a "$arch" "${jq_filter} | select(. != null) | .[0] // empty" 2>/dev/null || echo "")
+        # 从候选流中取第一个匹配项
+        asset_name=$(echo "$api_json" | jq -r --arg a "$arch" "[ ${jq_filter} ] | map(select(. != null)) | .[0] // empty" 2>/dev/null || echo "")
         if [ -n "$asset_name" ] && [ -n "$tag" ]; then
             asset_url=$(echo "$api_json" | jq -r --arg n "$asset_name" '.assets[] | select(.name==$n) | .browser_download_url' 2>/dev/null | head -n1 || echo "")
             log_info "最新 Release: $tag，资产: $asset_name"
+            [ -n "$asset_url" ] && log_info "解析到资产 URL: $asset_url"
+        fi
+
+        # 变体规则未匹配到资产时，退而求其次匹配更宽泛的命名
+        if [ -z "$asset_url" ] && [ -n "$tag" ]; then
+            asset_name=$(echo "$api_json" | jq -r --arg a "$arch" '[
+                (.assets[] | select(.name | test("^mihomo-linux-\($a)-v1\\.[^/]*\\.gz$")) | .name),
+                (.assets[] | select(.name | test("^mihomo-linux-\($a)-v[0-9].*\\.gz$")) | .name),
+                (.assets[] | select(.name | test("^mihomo-linux-\($a)-compatible-.*\\.gz$")) | .name)
+            ] | map(select(. != null)) | .[0] // empty' 2>/dev/null || echo "")
+            if [ -n "$asset_name" ]; then
+                asset_url=$(echo "$api_json" | jq -r --arg n "$asset_name" '.assets[] | select(.name==$n) | .browser_download_url' 2>/dev/null | head -n1 || echo "")
+                [ -n "$asset_url" ] && log_info "回退匹配到资产: $asset_name"
+            fi
         fi
     fi
 
@@ -344,7 +359,60 @@ download_mihomo() {
             urls+=("https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/download/$tag/$asset_name")
         fi
     fi
-    # 兜底：使用 latest/download（可能被限流或被代理拦截）
+    # 如果拿到了 tag 但没拿到资产 URL，按常见命名猜测基于 tag 的直链
+    if [ -z "$asset_url" ] && [ -n "$tag" ]; then
+        short_tag=${tag#v}
+        case "$KERNEL_VARIANT" in
+            v1)
+                urls+=(
+                    "https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-v$short_tag.gz"
+                    "https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-v1.$short_tag.gz"
+                    "https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-$short_tag.gz"
+                    "https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-v$short_tag.gz"
+                    "https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-v1.$short_tag.gz"
+                    "https://mirror.ghproxy.com/https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-$short_tag.gz"
+                )
+                ;;
+            v2)
+                urls+=(
+                    "https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-v2-v$short_tag.gz"
+                    "https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-v2-$short_tag.gz"
+                )
+                ;;
+            v3)
+                urls+=(
+                    "https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-v3-v$short_tag.gz"
+                    "https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-v3-$short_tag.gz"
+                )
+                ;;
+            compatible)
+                urls+=(
+                    "https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-compatible-v$short_tag.gz"
+                    "https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-compatible-$short_tag.gz"
+                )
+                ;;
+            auto)
+                urls+=(
+                    "https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-v$short_tag.gz"
+                    "https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-$short_tag.gz"
+                    "https://github.com/MetaCubeX/mihomo/releases/download/$tag/mihomo-linux-$arch-compatible-v$short_tag.gz"
+                )
+                ;;
+        esac
+        # 添加镜像对应项
+        expanded=()
+        for u in "${urls[@]}"; do
+            expanded+=("$u")
+            case "$u" in
+                https://github.com/*)
+                    expanded+=("https://mirror.ghproxy.com/$u")
+                    ;;
+            esac
+        done
+        urls=("${expanded[@]}")
+    fi
+
+    # 兜底：使用 latest/download（可能被限流或被代理拦截且常常不存在简名）
     urls+=(
         "https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch"
         "https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-$arch-compatible"
