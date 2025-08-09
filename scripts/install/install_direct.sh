@@ -444,18 +444,42 @@ download_mihomo() {
         exit 1
     fi
 
-    # 如果是 .gz，解压到目标
+    # 在替换前，若服务正在运行则先停止，避免 busy；替换后按需恢复
+    local was_active=0
+    if command -v systemctl >/dev/null 2>&1; then
+        if sudo systemctl is-active --quiet clash-meta 2>/dev/null; then
+            was_active=1
+            log_step "停止 clash-meta 服务以更新内核..."
+            sudo systemctl stop clash-meta || true
+        fi
+    fi
+
+    # 备份当前可执行（可选）
+    if [ -f "$target" ]; then
+        sudo cp -f "$target" "$target.bak.$(date +%s)" 2>/dev/null || true
+    fi
+
+    # 如果是 .gz，解压到临时文件后原子替换，避免 Text file busy
     if echo "$used_url" | grep -q '\.gz$'; then
         if command -v gzip >/dev/null 2>&1; then
-            gzip -dc "$tmpfile" | sudo tee "$target" >/dev/null
-            rm -f "$tmpfile"
+            tmp_bin=$(mktemp "$INSTALL_DIR/clash-meta.XXXXXX")
+            if gzip -dc "$tmpfile" > "$tmp_bin" 2>/dev/null; then
+                sudo chmod +x "$tmp_bin"
+                sudo mv -f "$tmp_bin" "$target"
+                rm -f "$tmpfile"
+            else
+                rm -f "$tmpfile" "$tmp_bin"
+                log_error "❌ 解压失败"
+                exit 1
+            fi
         else
             log_error "❌ 系统缺少 gzip，无法解压 .gz 格式"
             rm -f "$tmpfile"
             exit 1
         fi
     else
-        sudo mv "$tmpfile" "$target"
+        # 直接原子替换
+        sudo mv -f "$tmpfile" "$target"
     fi
 
     # 保险：若目标仍是 gzip 压缩数据，尝试再解压一次
@@ -464,9 +488,10 @@ download_mihomo() {
         case "$ftype" in
             *gzip\ compressed\ data*)
                 if command -v gzip >/dev/null 2>&1; then
-                    tmp2=$(mktemp)
+                    tmp2=$(mktemp "$INSTALL_DIR/clash-meta.XXXXXX")
                     if gzip -dc "$target" > "$tmp2" 2>/dev/null; then
-                        sudo mv "$tmp2" "$target"
+                        sudo chmod +x "$tmp2"
+                        sudo mv -f "$tmp2" "$target"
                     else
                         rm -f "$tmp2"
                     fi
@@ -501,6 +526,12 @@ download_mihomo() {
         log_info "✅ Clash.Meta 下载成功（$arch, $tag, 大小: $((size/1024)) KB）"
     else
         log_info "✅ Clash.Meta 下载成功（$arch, 大小: $((size/1024)) KB）"
+    fi
+
+    # 按需恢复服务
+    if [ "$was_active" -eq 1 ]; then
+        log_step "重启 clash-meta 服务..."
+        sudo systemctl start clash-meta || true
     fi
 }
 
