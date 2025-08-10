@@ -17,11 +17,16 @@ parse_args() {
     VERSION="latest"
     local args=("$@")
     local i=0
+    
+    echo "DEBUG: 开始解析参数，参数数量: ${#args[@]}"
+    echo "DEBUG: 参数列表: ${args[*]}"
 
     while [ $i -lt ${#args[@]} ]; do
+        echo "DEBUG: 处理参数 $i: ${args[$i]}"
         case "${args[$i]}" in
             -l|--latest)
                 VERSION="latest"
+                echo "DEBUG: 设置版本为 latest"
                 ((i++))
                 ;;
             -v|--version)
@@ -30,6 +35,7 @@ parse_args() {
                     exit 1
                 fi
                 VERSION="${args[$((i+1))]}"
+                echo "DEBUG: 设置版本为 $VERSION"
                 ((i+=2))
                 ;;
             -b|--branch)
@@ -38,6 +44,7 @@ parse_args() {
                     exit 1
                 fi
                 BRANCH="${args[$((i+1))]}"
+                echo "DEBUG: 设置分支为 $BRANCH"
                 ((i+=2))
                 ;;
             --kernel-variant|--variant)
@@ -49,14 +56,17 @@ parse_args() {
                     v1|v2|v3|compatible|auto) KERNEL_VARIANT="${args[$((i+1))]}" ;;
                     *) log_error "无效的变体：${args[$((i+1))]}（可选：v1|v2|v3|compatible|auto）"; exit 1 ;;
                 esac
+                echo "DEBUG: 设置内核变体为 $KERNEL_VARIANT"
                 ((i+=2))
                 ;;
             --verify)
                 VERIFY_AFTER_INSTALL=true
+                echo "DEBUG: 启用安装后验证"
                 ((i++))
                 ;;
             --no-verify)
                 VERIFY_AFTER_INSTALL=false
+                echo "DEBUG: 禁用安装后验证"
                 ((i++))
                 ;;
             -h|--help)
@@ -66,33 +76,40 @@ parse_args() {
             *)
                 # 兼容直接传入版本字符串
                 VERSION="${args[$i]}"
+                echo "DEBUG: 直接设置版本为 $VERSION"
                 ((i++))
                 ;;
         esac
     done
+    
+    echo "DEBUG: 参数解析完成"
+    echo "DEBUG: 最终版本: $VERSION"
+    echo "DEBUG: 最终分支: $BRANCH"
+    echo "DEBUG: 最终内核变体: $KERNEL_VARIANT"
+    echo "DEBUG: 最终验证设置: $VERIFY_AFTER_INSTALL"
 }
 
 # 颜色输出
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+RED=''
+GREEN=''
+YELLOW=''
+BLUE=''
+NC='' # No Color
 
 log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
+    echo "[INFO] $1"
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+    echo "[WARN] $1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo "[ERROR] $1"
 }
 
 log_step() {
-    echo -e "${BLUE}[STEP]${NC} $1"
+    echo "[STEP] $1"
 }
 
 # 检测 PVE UI 目录（PVE 8 使用 js，PVE 7 使用 ext6）

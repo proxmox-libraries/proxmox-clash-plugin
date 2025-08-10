@@ -10,26 +10,26 @@ GITHUB_REPO="proxmox-libraries/proxmox-clash-plugin"
 INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/$GITHUB_REPO/main/scripts/install/install_direct.sh"
 
 # 颜色输出
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+RED=''
+GREEN=''
+YELLOW=''
+BLUE=''
+NC='' # No Color
 
 log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
+    echo "[INFO] $1"
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+    echo "[WARN] $1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    echo "[ERROR] $1"
 }
 
 log_step() {
-    echo -e "${BLUE}[STEP]${NC} $1"
+    echo "[STEP] $1"
 }
 
 # 显示欢迎信息
