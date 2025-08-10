@@ -197,11 +197,11 @@ main() {
 
     # 下载并运行安装脚本（传递版本和分支参数）
     if [ -n "$normalized_version" ] && [ -n "$branch_param" ]; then
-        download_and_run "$normalized_version" "-b" "$branch_param"
+        download_and_run "-b" "$branch_param"
     elif [ -n "$normalized_version" ]; then
-        download_and_run "$normalized_version"
+        download_and_run
     elif [ -n "$branch_param" ]; then
-        download_and_run "latest" "-b" "$branch_param"
+        download_and_run "-b" "$branch_param"
     else
         download_and_run
     fi
