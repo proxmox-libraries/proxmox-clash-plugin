@@ -54,30 +54,77 @@ restore_html_template() {
     
     if [ ${#backup_files[@]} -gt 0 ]; then
         echo "🔄 发现备份文件，询问是否恢复..."
-        echo "备份文件列表:"
+        echo ""
+        echo "📋 备份文件列表（按版本和时间排序）:"
+        
+        # 解析备份文件信息并排序
+        local backup_info=()
         for file in "${backup_files[@]}"; do
-            echo "  - $file"
+            local filename=$(basename "$file")
+            local version="unknown"
+            local timestamp="0"
+            
+            # 解析版本和时间戳
+            if [[ "$filename" =~ \.backup\.v([^.]+)\.([0-9]+)$ ]]; then
+                version="${BASH_REMATCH[1]}"
+                timestamp="${BASH_REMATCH[2]}"
+            elif [[ "$filename" =~ \.backup\.([0-9]+)$ ]]; then
+                timestamp="${BASH_REMATCH[1]}"
+            fi
+            
+            # 格式化时间
+            local date_str=$(date -d "@$timestamp" 2>/dev/null || echo "未知时间")
+            local size=$(stat -c %s "$file" 2>/dev/null || echo 0)
+            local size_kb=$((size / 1024))
+            
+            backup_info+=("$version|$timestamp|$date_str|$size_kb|$file")
         done
         
-        read -p "是否要恢复备份文件？(y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            # 选择最新的备份文件
-            local latest_backup=""
-            local latest_time=0
-            for file in "${backup_files[@]}"; do
-                local file_time=$(stat -c %Y "$file" 2>/dev/null || echo 0)
-                if [ "$file_time" -gt "$latest_time" ]; then
-                    latest_time=$file_time
-                    latest_backup="$file"
-                fi
-            done
+        # 按时间戳排序（最新的在前）
+        IFS=$'\n' sorted_backups=($(sort -t'|' -k2 -nr <<<"${backup_info[*]}"))
+        unset IFS
+        
+        # 显示备份文件信息
+        local index=1
+        for backup in "${sorted_backups[@]}"; do
+            IFS='|' read -r version timestamp date_str size_kb file <<< "$backup"
+            echo "  $index. 版本: $version | 时间: $date_str | 大小: ${size_kb}KB"
+            echo "     文件: $file"
+            echo ""
+            ((index++))
+        done
+        
+        # 询问用户选择
+        echo "请选择要恢复的备份文件（输入序号）:"
+        read -p "选择 (1-${#sorted_backups[@]}) 或按 Enter 跳过: " choice
+        
+        if [[ -n "$choice" && "$choice" =~ ^[0-9]+$ && "$choice" -ge 1 && "$choice" -le ${#sorted_backups[@]} ]]; then
+            local selected_backup="${sorted_backups[$((choice-1))]}"
+            IFS='|' read -r version timestamp date_str size_kb file <<< "$selected_backup"
             
-            if [ -n "$latest_backup" ]; then
-                echo "🔄 恢复最新备份: $latest_backup"
-                cp "$latest_backup" "$template_file"
+            echo "🔄 恢复选择的备份文件:"
+            echo "  版本: $version"
+            echo "  时间: $date_str"
+            echo "  文件: $file"
+            
+            read -p "确认恢复？(y/N): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                cp "$file" "$template_file"
                 echo "✅ 备份恢复完成"
+                
+                # 验证恢复结果
+                if grep -q "pve-panel-clash.js" "$template_file"; then
+                    echo "⚠️  警告：恢复后的文件仍包含 Clash 插件引用"
+                    echo "   建议手动检查并清理"
+                else
+                    echo "✅ 恢复后的文件已清理 Clash 插件引用"
+                fi
+            else
+                echo "❌ 取消恢复"
             fi
+        else
+            echo "⏭️  跳过备份恢复"
         fi
     fi
 }

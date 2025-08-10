@@ -97,6 +97,25 @@ detect_pve_ui_dir() {
     return 1
 }
 
+# 获取当前版本
+get_current_version() {
+    # 从版本管理器获取当前版本
+    if [ -f "/opt/proxmox-clash/scripts/management/version_manager.sh" ]; then
+        # 如果已安装，从版本管理器获取
+        local version=$(/opt/proxmox-clash/scripts/management/version_manager.sh --current 2>/dev/null || echo "unknown")
+        echo "$version"
+    else
+        # 如果未安装，从当前下载的版本获取
+        if [ -n "$VERSION" ] && [ "$VERSION" != "latest" ]; then
+            echo "$VERSION"
+        else
+            # 尝试从 GitHub 获取最新版本
+            local latest_version=$(curl -s "https://api.github.com/repos/proxmox-libraries/proxmox-clash-plugin/releases/latest" | grep -o '"tag_name": "v[^"]*"' | cut -d'"' -f4 2>/dev/null || echo "v1.2.7")
+            echo "$latest_version"
+        fi
+    fi
+}
+
 # 检查依赖
 check_dependencies() {
     log_step "检查系统依赖..."
@@ -255,17 +274,39 @@ modify_html_template() {
     log_step "修改 PVE HTML 模板文件..."
     
     local template_file="/usr/share/pve-manager/index.html.tpl"
-    local backup_file="/usr/share/pve-manager/index.html.tpl.backup.$(date +%s)"
+    local current_version=$(get_current_version)
+    local timestamp=$(date +%s)
+    local backup_file="/usr/share/pve-manager/index.html.tpl.backup.v${current_version}.${timestamp}"
     
     if [ ! -f "$template_file" ]; then
         log_warn "⚠️  HTML 模板文件不存在: $template_file"
         return 0
     fi
     
-    # 检查是否已经修改过
+    # 检查是否已经修改过（更精确的检查）
     if grep -q "pve-panel-clash.js" "$template_file"; then
-        log_info "✅ HTML 模板已经包含 Clash 插件引用"
+        log_info "✅ HTML 模板已经包含 Clash 插件引用，跳过修改"
+        
+        # 检查引用是否正确
+        if grep -q 'src="/pve2/js/pve-panel-clash.js"' "$template_file"; then
+            log_info "✅ 插件引用路径正确"
+        else
+            log_warn "⚠️  发现旧的插件引用，可能需要清理"
+            # 显示当前引用的行
+            local line_num=$(grep -n "pve-panel-clash.js" "$template_file" | head -1 | cut -d: -f1)
+            log_info "  引用位置: 第 $line_num 行"
+            local context=$(grep -A1 -B1 "pve-panel-clash.js" "$template_file")
+            log_info "  引用上下文:"
+            echo "$context" | sed 's/^/    /'
+        fi
         return 0
+    fi
+    
+    # 检查是否有其他版本的引用需要清理
+    local old_refs=$(grep -n "clash\|Clash" "$template_file" | grep -v "pve-panel-clash.js" || true)
+    if [ -n "$old_refs" ]; then
+        log_warn "⚠️  发现可能的旧版本引用，建议清理："
+        echo "$old_refs" | sed 's/^/    /'
     fi
     
     # 创建备份
@@ -281,6 +322,13 @@ modify_html_template() {
         
         if grep -q "pve-panel-clash.js" "$template_file"; then
             log_info "✅ HTML 模板修改成功"
+            
+            # 显示修改后的上下文
+            local line_num=$(grep -n "pve-panel-clash.js" "$template_file" | head -1 | cut -d: -f1)
+            log_info "  插入位置: 第 $line_num 行"
+            local context=$(grep -A2 -B2 "pve-panel-clash.js" "$template_file")
+            log_info "  修改后上下文:"
+            echo "$context" | sed 's/^/    /'
         else
             log_error "❌ HTML 模板修改失败"
             # 恢复备份
@@ -294,12 +342,31 @@ modify_html_template() {
         
         if grep -q "pve-panel-clash.js" "$template_file"; then
             log_info "✅ HTML 模板修改成功（备用方案）"
+            
+            # 显示修改后的上下文
+            local line_num=$(grep -n "pve-panel-clash.js" "$template_file" | head -1 | cut -d: -f1)
+            log_info "  插入位置: 第 $line_num 行"
+            local context=$(grep -A2 -B2 "pve-panel-clash.js" "$template_file")
+            log_info "  修改后上下文:"
+            echo "$context" | sed 's/^/    /'
         else
             log_error "❌ HTML 模板修改失败"
             # 恢复备份
             sudo cp "$backup_file" "$template_file"
             return 1
         fi
+    fi
+    
+    # 验证修改结果
+    log_step "验证 HTML 模板修改..."
+    if grep -q 'src="/pve2/js/pve-panel-clash.js"' "$template_file"; then
+        log_info "✅ 插件引用验证成功"
+        log_info "✅ HTML 模板修改完成，备份文件: $backup_file"
+    else
+        log_error "❌ 插件引用验证失败"
+        # 恢复备份
+        sudo cp "$backup_file" "$template_file"
+        return 1
     fi
 }
 
