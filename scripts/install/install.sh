@@ -616,7 +616,7 @@ create_links() {
     log_step "创建管理脚本链接..."
     
     # 创建 /usr/local/bin 链接
-    sudo ln -sf "$INSTALL_DIR/scripts/install/install_direct.sh" "/usr/local/bin/proxmox-clash-install"
+    sudo ln -sf "$INSTALL_DIR/scripts/install/install.sh" "/usr/local/bin/proxmox-clash-install"
 sudo ln -sf "$INSTALL_DIR/scripts/management/upgrade.sh" "/usr/local/bin/proxmox-clash-upgrade"
 sudo ln -sf "$INSTALL_DIR/scripts/management/uninstall.sh" "/usr/local/bin/proxmox-clash-uninstall"
     
