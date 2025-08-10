@@ -21,6 +21,67 @@ detect_pve_ui_dir() {
 
 UI_DIR="$(detect_pve_ui_dir)"
 
+# 恢复 HTML 模板文件函数
+restore_html_template() {
+    local template_file="/usr/share/pve-manager/index.html.tpl"
+    
+    if [ ! -f "$template_file" ]; then
+        echo "⚠️  HTML 模板文件不存在，跳过恢复"
+        return 0
+    fi
+    
+    # 查找并删除 Clash 插件的脚本引用
+    if grep -q "pve-panel-clash.js" "$template_file"; then
+        echo "🔄 从 HTML 模板中移除 Clash 插件引用..."
+        
+        # 使用 sed 删除包含 pve-panel-clash.js 的行
+        sed -i '/pve-panel-clash.js/d' "$template_file"
+        
+        if ! grep -q "pve-panel-clash.js" "$template_file"; then
+            echo "✅ HTML 模板恢复成功"
+        else
+            echo "⚠️  HTML 模板恢复可能不完整，请手动检查"
+        fi
+    else
+        echo "✅ HTML 模板无需恢复"
+    fi
+    
+    # 查找并恢复备份文件（如果存在）
+    local backup_files=()
+    while IFS= read -r -d '' file; do
+        backup_files+=("$file")
+    done < <(find /usr/share/pve-manager -name "index.html.tpl.backup.*" -print0 2>/dev/null)
+    
+    if [ ${#backup_files[@]} -gt 0 ]; then
+        echo "🔄 发现备份文件，询问是否恢复..."
+        echo "备份文件列表:"
+        for file in "${backup_files[@]}"; do
+            echo "  - $file"
+        done
+        
+        read -p "是否要恢复备份文件？(y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            # 选择最新的备份文件
+            local latest_backup=""
+            local latest_time=0
+            for file in "${backup_files[@]}"; do
+                local file_time=$(stat -c %Y "$file" 2>/dev/null || echo 0)
+                if [ "$file_time" -gt "$latest_time" ]; then
+                    latest_time=$file_time
+                    latest_backup="$file"
+                fi
+            done
+            
+            if [ -n "$latest_backup" ]; then
+                echo "🔄 恢复最新备份: $latest_backup"
+                cp "$latest_backup" "$template_file"
+                echo "✅ 备份恢复完成"
+            fi
+        fi
+    fi
+}
+
 echo "🗑️ 开始卸载 Proxmox Clash 插件..."
 
 # 检查是否为 root 用户
@@ -50,6 +111,10 @@ if [ -n "$UI_DIR" ]; then
 else
     echo "⚠️  未找到 PVE UI 目录，跳过删除 UI 插件"
 fi
+
+# 恢复 HTML 模板文件
+echo "🔄 恢复 HTML 模板文件..."
+restore_html_template
 
 # 删除主目录
 echo "🗑️ 删除主目录..."

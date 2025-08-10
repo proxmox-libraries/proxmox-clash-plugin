@@ -11,6 +11,7 @@ INSTALL_DIR="/opt/proxmox-clash"
 
 # 参数解析：兼容 -l/--latest 与 -v/--version，也支持直接传入版本号
 KERNEL_VARIANT="v1"  # 默认选择 v1 变体
+VERIFY_AFTER_INSTALL=false  # 默认不验证
 parse_args() {
     VERSION="latest"
     while [ $# -gt 0 ]; do
@@ -37,6 +38,14 @@ parse_args() {
                     *) log_error "无效的变体：$2（可选：v1|v2|v3|compatible|auto）"; exit 1 ;;
                 esac
                 shift 2
+                ;;
+            --verify)
+                VERIFY_AFTER_INSTALL=true
+                shift
+                ;;
+            --no-verify)
+                VERIFY_AFTER_INSTALL=false
+                shift
                 ;;
             -h|--help)
                 show_help
@@ -229,9 +238,68 @@ install_ui() {
 
     if [ -f "$INSTALL_DIR/ui/pve-panel-clash.js" ]; then
         sudo cp "$INSTALL_DIR/ui/pve-panel-clash.js" "$ui_dir/"
+        # 设置正确的权限
+        sudo chown root:root "$ui_dir/pve-panel-clash.js"
+        sudo chmod 644 "$ui_dir/pve-panel-clash.js"
         log_info "✅ UI 组件已安装到: $ui_dir"
+        
+        # 修改 index.html.tpl 文件
+        modify_html_template
     else
         log_warn "⚠️  UI 文件不存在"
+    fi
+}
+
+# 修改 HTML 模板文件
+modify_html_template() {
+    log_step "修改 PVE HTML 模板文件..."
+    
+    local template_file="/usr/share/pve-manager/index.html.tpl"
+    local backup_file="/usr/share/pve-manager/index.html.tpl.backup.$(date +%s)"
+    
+    if [ ! -f "$template_file" ]; then
+        log_warn "⚠️  HTML 模板文件不存在: $template_file"
+        return 0
+    fi
+    
+    # 检查是否已经修改过
+    if grep -q "pve-panel-clash.js" "$template_file"; then
+        log_info "✅ HTML 模板已经包含 Clash 插件引用"
+        return 0
+    fi
+    
+    # 创建备份
+    sudo cp "$template_file" "$backup_file"
+    log_info "✅ 已创建备份: $backup_file"
+    
+    # 查找插入位置（在 pvemanagerlib.js 之后）
+    local insert_after="pvemanagerlib.js?ver=\[% version %]"
+    
+    if grep -q "$insert_after" "$template_file"; then
+        # 使用 sed 在指定行后插入我们的脚本引用
+        sudo sed -i "/$insert_after/a\    <script type=\"text/javascript\" src=\"/pve2/js/pve-panel-clash.js\"></script>" "$template_file"
+        
+        if grep -q "pve-panel-clash.js" "$template_file"; then
+            log_info "✅ HTML 模板修改成功"
+        else
+            log_error "❌ HTML 模板修改失败"
+            # 恢复备份
+            sudo cp "$backup_file" "$template_file"
+            return 1
+        fi
+    else
+        log_warn "⚠️  未找到插入位置，尝试在 head 标签末尾添加"
+        # 备用方案：在 </head> 标签前插入
+        sudo sed -i 's|</head>|    <script type="text/javascript" src="/pve2/js/pve-panel-clash.js"></script>\n  </head>|' "$template_file"
+        
+        if grep -q "pve-panel-clash.js" "$template_file"; then
+            log_info "✅ HTML 模板修改成功（备用方案）"
+        else
+            log_error "❌ HTML 模板修改失败"
+            # 恢复备份
+            sudo cp "$backup_file" "$template_file"
+            return 1
+        fi
     fi
 }
 
@@ -605,13 +673,21 @@ show_result() {
     echo ""
     echo "📖 文档地址："
     echo "  https://proxmox-libraries.github.io/proxmox-clash-plugin/"
+    echo ""
+    echo "⚠️  重要提示："
+    echo "  - HTML 模板已自动修改，包含 Clash 插件引用"
+    echo "  - 请刷新 Proxmox Web UI 页面以加载插件"
+    echo "  - 如果页面未显示插件，请清除浏览器缓存后重试"
+    echo "  - 安装过程中已创建 HTML 模板备份文件"
 }
 
 # 主函数
 main() {
     echo "🚀 Proxmox Clash 插件直接安装脚本"
-    parse_args "$1" "$2"
+    parse_args "$@"
     echo "版本: $VERSION"
+    echo "内核变体: $KERNEL_VARIANT"
+    echo "安装后验证: $([ "$VERIFY_AFTER_INSTALL" = true ] && echo "是" || echo "否")"
     echo ""
     
     check_dependencies
@@ -623,18 +699,35 @@ main() {
     create_config
     create_links
     show_result
+    
+    # 安装后验证
+    if [ "$VERIFY_AFTER_INSTALL" = true ]; then
+        echo ""
+        log_step "运行安装后验证..."
+        if [ -f "$INSTALL_DIR/scripts/utils/verify_installation.sh" ]; then
+            "$INSTALL_DIR/scripts/utils/verify_installation.sh"
+        else
+            log_warn "⚠️  验证脚本不存在，跳过验证"
+        fi
+    fi
 }
 
 # 显示帮助
 show_help() {
-    echo "用法: $0 [版本]"
+    echo "用法: $0 [版本] [选项]"
     echo ""
     echo "参数:"
     echo "  版本    指定安装版本 (默认: latest)"
     echo ""
+    echo "选项:"
+    echo "  --verify    安装完成后自动运行验证"
+    echo "  --no-verify 跳过安装后验证 (默认)"
+    echo ""
     echo "示例:"
     echo "  $0              # 安装最新版本"
     echo "  $0 v1.1.0       # 安装指定版本"
+    echo "  $0 --verify     # 安装最新版本并验证"
+    echo "  $0 v1.1.0 --verify  # 安装指定版本并验证"
     echo ""
     echo "注意: 此脚本需要 sudo 权限"
 }
