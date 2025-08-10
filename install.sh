@@ -196,13 +196,14 @@ main() {
     check_system
 
     # 下载并运行安装脚本（传递版本和分支参数）
-    if [ -n "$normalized_version" ] && [ -n "$branch_param" ]; then
+    if [ -n "$branch_param" ]; then
+        # 如果指定了分支，只传递分支参数
         download_and_run "-b" "$branch_param"
-    elif [ -n "$normalized_version" ]; then
-        download_and_run
-    elif [ -n "$branch_param" ]; then
-        download_and_run "-b" "$branch_param"
+    elif [ -n "$normalized_version" ] && [ "$normalized_version" != "latest" ]; then
+        # 如果指定了具体版本（不是latest），传递版本参数
+        download_and_run "$normalized_version"
     else
+        # 默认情况，不传递任何参数
         download_and_run
     fi
 }
