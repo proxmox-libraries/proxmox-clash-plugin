@@ -7,6 +7,28 @@ title: 安装指南
 
 本指南将帮助您在 Proxmox VE 上安装和配置 Clash 插件。
 
+## 🆕 v1.2.7 重大改进
+
+**最新版本 v1.2.7 带来了安装脚本的重大改进！**
+
+- 🚀 **自动 HTML 模板修改** - 无需手动修改配置文件
+- 📋 **内置安装验证系统** - 确保安装完整性
+- 🛡️ **UI 文件权限优化** - 自动设置正确的权限
+- 🔄 **完整卸载清理** - 支持安全回滚和恢复
+
+### 快速开始（推荐）
+```bash
+# 一键安装并验证
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash -s -- -l --verify
+```
+
+### 了解更多
+- [📖 安装改进详情](installation-improvements.md) - 完整的改进说明
+- [⚡ 快速参考指南](quick-reference.md) - 常用命令速查
+- [🔍 故障排除指南](../troubleshooting/) - 问题解决方案
+
+---
+
 ## 📋 系统要求
 
 ### 硬件要求
@@ -37,6 +59,9 @@ title: 安装指南
 ```bash
 # 一键安装最新版本
 curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash
+
+# 安装并自动验证（v1.2.7 新功能）
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash -s -- -l --verify
 ```
 
 ### 方法二：直接脚本安装
@@ -47,6 +72,9 @@ curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plug
 
 # 安装指定版本
 curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install_direct.sh | sudo bash -s -- v1.1.0
+
+# 安装并验证（v1.2.7 新功能）
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install_direct.sh | sudo bash -s -- --verify
 ```
 
 ## ⚙️ 安装后配置
@@ -80,7 +108,17 @@ sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh
 
 ## 🔧 安装验证
 
-### 检查 Web UI 集成
+### 自动验证（v1.2.7 新功能）
+
+```bash
+# 运行完整验证脚本
+sudo /opt/proxmox-clash/scripts/utils/verify_installation.sh
+
+# 快速功能测试
+sudo /opt/proxmox-clash/scripts/utils/quick_test.sh
+```
+
+### 手动检查 Web UI 集成
 
 1. 登录 Proxmox Web UI
 2. 在左侧菜单中查找 "Clash 控制" 选项
@@ -101,53 +139,41 @@ curl -k -u root@pam:your_password \
 # 查看服务日志
 sudo journalctl -u clash-meta -f
 
-# 查看插件日志
-sudo /opt/proxmox-clash/scripts/management/view_logs.sh
+# 查看安装日志
+sudo journalctl -u clash-meta --since "1 hour ago"
 ```
 
-## 🚨 常见安装问题
+## 🆘 常见问题
 
-### 1. 权限问题
+### 安装后插件未显示
 
-```bash
-# 确保脚本有执行权限
-chmod +x scripts/*/*.sh
+**解决方案**：
+1. 运行验证脚本：`sudo /opt/proxmox-clash/scripts/utils/verify_installation.sh`
+2. 刷新浏览器页面或清除缓存
+3. 检查 HTML 模板：`grep -n "pve-panel-clash.js" /usr/share/pve-manager/index.html.tpl`
 
-# 检查目录权限
-sudo chown -R root:root /opt/proxmox-clash
-sudo chmod -R 755 /opt/proxmox-clash
-```
+### 权限错误
 
-### 2. 依赖缺失
+**解决方案**：
+1. 确保使用 `sudo` 运行安装脚本
+2. 运行验证脚本自动修复权限
+3. 手动设置权限：`sudo chmod 644 /usr/share/pve-manager/js/pve-panel-clash.js`
 
-```bash
-# 安装必要依赖
-sudo apt-get update
-sudo apt-get install -y curl wget jq tar
-```
+### 服务启动失败
 
-### 3. 端口冲突
+**解决方案**：
+1. 检查配置文件语法
+2. 查看详细日志：`sudo journalctl -u clash-meta -f`
+3. 验证端口是否被占用
 
-```bash
-# 检查端口占用
-sudo netstat -tlnp | grep :9090
-sudo netstat -tlnp | grep :7890
+## 🔗 相关链接
 
-# 如果端口被占用，修改配置文件
-sudo nano /opt/proxmox-clash/config/config.yaml
-```
+- [📖 安装改进详情](installation-improvements.md) - v1.2.7 完整改进说明
+- [⚡ 快速参考指南](quick-reference.md) - 常用命令和故障排除
+- [🔍 故障排除指南](../troubleshooting/) - 详细问题解决方案
+- [⚙️ 配置指南](../configuration/) - 插件配置说明
+- [📚 开发文档](../development/) - 开发者资源
 
-## 📚 相关文档
+---
 
-- [版本管理](version-management.md) - 版本管理功能详解
-- [服务配置](service.md) - systemd 服务配置
-- [快速配置](../configuration/quick-start.md) - 快速上手指南
-
-## 🔗 下一步
-
-安装完成后，建议您：
-
-1. 阅读 [快速配置](../configuration/quick-start.md) 进行基础设置
-2. 查看 [Web UI 使用](../ui/README.md) 了解界面操作
-3. 学习 [脚本工具](../scripts/) 进行日常管理
-4. 遇到问题时参考 [故障排除](../troubleshooting/README.md)
+**快速安装**: `curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash -s -- -l --verify`

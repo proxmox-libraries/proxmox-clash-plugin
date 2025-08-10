@@ -8,7 +8,8 @@
 
 | 版本 | 发布日期 | 代号 | 主要特性 | 状态 |
 |------|----------|------|----------|------|
-| [v1.2.6](release-v1.2.6.md) | 2025-01-28 | ExtJS 兼容性修复 | 解决 $isClass 错误，提高稳定性 | ✅ 当前版本 |
+| [v1.2.7](release-v1.2.7.md) | 2024-12-19 | 安装脚本重大改进 | 自动HTML模板修改，安装验证系统 | ✅ 当前版本 |
+| [v1.2.6](release-v1.2.6.md) | 2025-01-28 | ExtJS 兼容性修复 | 解决 $isClass 错误，提高稳定性 | 🔄 维护中 |
 | [v1.2.5](release-v1.2.5.md) | 2025-01-27 | UI 注入优化 | 侧边导航注入简化，提高稳定性 | 🔄 维护中 |
 | [v1.2.4](release-v1.2.4.md) | 2025-08-10 | PVE 8.4 UI 兼容 | 适配顶部工具栏注入 | 🔄 维护中 |
 | [v1.2.3](release-v1.2.3.md) | 2025-08-09 | Gzip Fix & Final Polishing | 下载解压最终修复 | 🔄 维护中 |
@@ -18,9 +19,19 @@
 | [v1.1.0](release-v1.1.0.md) | 2024-12-01 | Version Management Release | 版本管理，订阅功能 | 🔄 维护中 |
 | [v1.0.0](release-v1.0.0.md) | 2024-11-15 | Initial Release | 首次发布，基础功能 | 🔄 维护中 |
 
-
-
 ## 📈 版本历史
+
+### v1.2.7 - 安装脚本重大改进
+**发布日期**: 2024-12-19
+
+- [发布说明](release-v1.2.7.md) - 完整的功能介绍和升级指南
+
+主要改进：
+- 🚀 安装脚本全面重构，大幅提升安装成功率
+- 🔧 自动 HTML 模板修改，无需手动配置
+- 📋 内置安装验证系统，确保安装完整性
+- 🗑️ 完整卸载清理，支持安全回滚
+- 🛡️ UI 文件权限优化，解决权限问题
 
 ### v1.2.6 - ExtJS 兼容性修复
 **发布日期**: 2025-01-28
@@ -70,6 +81,12 @@
 
 ### 升级建议
 
+#### v1.2.7 升级重点
+1. **安装流程简化**: 新版本大幅简化了安装步骤
+2. **自动配置**: HTML 模板修改完全自动化
+3. **安装验证**: 内置验证系统确保安装成功
+4. **权限优化**: 自动处理文件权限问题
+
 #### v1.2.0 升级重点
 1. **透明代理配置**：需要手动启用透明代理
 2. **安全配置**：建议使用新的安全配置模板
@@ -84,15 +101,16 @@ sudo cp /opt/proxmox-clash/config/config.yaml /opt/proxmox-clash/config/config.y
 # 2. 升级插件
 sudo /opt/proxmox-clash/scripts/upgrade.sh -l
 
-# 3. 检查透明代理状态
-sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh status
+# 3. 运行验证脚本
+sudo /opt/proxmox-clash/scripts/utils/verify_installation.sh
 
-# 4. 根据需要启用透明代理
-# 通过 Web UI 或命令行启用
+# 4. 检查透明代理状态
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh status
 ```
 
 ## 📅 支持时间
 
+- **v1.2.7**：当前版本，完全支持
 - **v1.2.x**：当前版本，完全支持
 - **v1.1.x**：安全更新支持，功能更新有限
 - **v1.0.x**：仅安全修复，建议升级
