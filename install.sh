@@ -147,7 +147,7 @@ main() {
     show_welcome
 
     # 解析参数并规范化为 install_direct.sh 可识别的形式
-    local normalized_version="latest"
+    local normalized_version=""
     local branch_param=""
     local args=("$@")
     local i=0
@@ -199,8 +199,8 @@ main() {
     if [ -n "$branch_param" ]; then
         # 如果指定了分支，只传递分支参数
         download_and_run "-b" "$branch_param"
-    elif [ -n "$normalized_version" ] && [ "$normalized_version" != "latest" ]; then
-        # 如果指定了具体版本（不是latest），传递版本参数
+    elif [ -n "$normalized_version" ]; then
+        # 如果指定了版本，传递版本参数
         download_and_run "$normalized_version"
     else
         # 默认情况，不传递任何参数
