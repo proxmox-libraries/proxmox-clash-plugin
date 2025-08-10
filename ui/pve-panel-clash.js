@@ -6,9 +6,56 @@
     
     console.log('[Clash] 插件开始加载...');
     
+    // 兼容性函数：获取当前节点名称
+    var getCurrentNode = function() {
+        // 方法1: PVE.Utils.getNode (PVE 8.x)
+        if (typeof PVE !== 'undefined' && PVE.Utils && PVE.Utils.getNode) {
+            try {
+                return PVE.Utils.getNode();
+            } catch (e) {
+                console.warn('[Clash] PVE.Utils.getNode 调用失败:', e);
+            }
+        }
+        
+        // 方法2: PVE.NodeName (PVE 7.x)
+        if (typeof PVE !== 'undefined' && PVE.NodeName) {
+            return PVE.NodeName;
+        }
+        
+        // 方法3: 从 URL 解析
+        try {
+            var path = window.location.pathname;
+            var match = path.match(/\/nodes\/([^\/]+)/);
+            if (match && match[1]) {
+                return match[1];
+            }
+        } catch (e) {
+            console.warn('[Clash] URL 解析失败:', e);
+        }
+        
+        // 方法4: 从页面元素获取
+        try {
+            var nodeElement = document.querySelector('[data-node]');
+            if (nodeElement && nodeElement.getAttribute('data-node')) {
+                return nodeElement.getAttribute('data-node');
+            }
+        } catch (e) {
+            console.warn('[Clash] 页面元素解析失败:', e);
+        }
+        
+        // 方法5: 从全局变量获取
+        if (typeof window.pve_node !== 'undefined') {
+            return window.pve_node;
+        }
+        
+        // 默认值
+        console.warn('[Clash] 无法获取节点名称，使用默认值 "localhost"');
+        return 'localhost';
+    };
+    
     // 等待 PVE 环境完全加载
     var waitForPVE = function() {
-        if (typeof PVE !== 'undefined' && PVE.Utils && PVE.Utils.getNode) {
+        if (typeof PVE !== 'undefined') {
             console.log('[Clash] PVE 环境已加载，开始注册插件...');
             registerClashPlugin();
         } else {
@@ -485,7 +532,7 @@ Ext.define('PVE.panel.Clash', {
         memoryField.setValue('-');
 
         PVE.Utils.API2Request({
-            url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash',
+            url: '/api2/json/nodes/' + getCurrentNode() + '/clash',
             method: 'GET',
             success: function(response) {
                 var data = response.result.data;
@@ -511,7 +558,7 @@ Ext.define('PVE.panel.Clash', {
         var me = this;
         
         PVE.Utils.API2Request({
-            url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/config',
+            url: '/api2/json/nodes/' + getCurrentNode() + '/clash/config',
             method: 'GET',
             success: function(response) {
                 var data = response.result.data;
@@ -549,7 +596,7 @@ Ext.define('PVE.panel.Clash', {
         }
 
         PVE.Utils.API2Request({
-            url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/proxies',
+            url: '/api2/json/nodes/' + getCurrentNode() + '/clash/proxies',
             method: 'GET',
             success: function(response) {
                 var proxies = response.result.data.proxies || {};
@@ -579,7 +626,7 @@ Ext.define('PVE.panel.Clash', {
         var me = this;
         
         PVE.Utils.API2Request({
-            url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/configs/reload',
+            url: '/api2/json/nodes/' + getCurrentNode() + '/clash/configs/reload',
             method: 'PUT',
             success: function(response) {
                 Ext.Msg.alert('成功', '配置重载成功');
@@ -608,7 +655,7 @@ Ext.define('PVE.panel.Clash', {
         }
 
         PVE.Utils.API2Request({
-            url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/subscription/update',
+            url: '/api2/json/nodes/' + getCurrentNode() + '/clash/subscription/update',
             method: 'POST',
             params: {
                 url: urlField.getValue(),
@@ -629,7 +676,7 @@ Ext.define('PVE.panel.Clash', {
         var me = this;
         
         PVE.Utils.API2Request({
-            url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/configs',
+            url: '/api2/json/nodes/' + getCurrentNode() + '/clash/configs',
             method: 'GET',
             success: function(response) {
                 var configs = response.result.data.configs || [];
@@ -654,7 +701,7 @@ Ext.define('PVE.panel.Clash', {
         Ext.Msg.confirm('确认', '是否要配置透明代理？这将设置 iptables 规则。', function(btn) {
             if (btn === 'yes') {
                 PVE.Utils.API2Request({
-                    url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/setup-transparent-proxy',
+                    url: '/api2/json/nodes/' + getCurrentNode() + '/clash/setup-transparent-proxy',
                     method: 'POST',
                     success: function(response) {
                         Ext.Msg.alert('成功', '透明代理配置完成');
@@ -678,7 +725,7 @@ Ext.define('PVE.panel.Clash', {
         Ext.Msg.confirm('确认', message, function(btn) {
             if (btn === 'yes') {
                 PVE.Utils.API2Request({
-                    url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/toggle-transparent-proxy',
+                    url: '/api2/json/nodes/' + getCurrentNode() + '/clash/toggle-transparent-proxy',
                     method: 'POST',
                     params: {
                         enable: enable
@@ -803,7 +850,7 @@ Ext.define('PVE.panel.Clash', {
         
         // 获取版本信息
         PVE.Utils.API2Request({
-            url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/version',
+            url: '/api2/json/nodes/' + getCurrentNode() + '/clash/version',
             method: 'GET',
             success: function(response) {
                 var data = response.result.data;
@@ -833,7 +880,7 @@ Ext.define('PVE.panel.Clash', {
         }
         
         PVE.Utils.API2Request({
-            url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/version/check',
+            url: '/api2/json/nodes/' + getCurrentNode() + '/clash/version/check',
             method: 'GET',
             success: function(response) {
                 var data = response.result.data;
@@ -881,7 +928,7 @@ Ext.define('PVE.panel.Clash', {
                 }
                 
                 PVE.Utils.API2Request({
-                    url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/version/upgrade',
+                    url: '/api2/json/nodes/' + getCurrentNode() + '/clash/version/upgrade',
                     method: 'POST',
                     success: function(response) {
                         var data = response.result.data;
@@ -943,7 +990,7 @@ Ext.define('PVE.panel.Clash', {
 // 静态方法用于全局调用
 PVE.panel.Clash.testProxy = function(proxyName) {
     PVE.Utils.API2Request({
-        url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/proxies/' + proxyName + '/delay',
+        url: '/api2/json/nodes/' + getCurrentNode() + '/clash/proxies/' + proxyName + '/delay',
         method: 'GET',
         success: function(response) {
             var delay = response.result.data.delay;
@@ -959,7 +1006,7 @@ PVE.panel.Clash.switchProxy = function(proxyName) {
     Ext.Msg.confirm('确认', '是否要切换到节点: ' + proxyName + '？', function(btn) {
         if (btn === 'yes') {
             PVE.Utils.API2Request({
-                url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/proxies/Proxy',
+                url: '/api2/json/nodes/' + getCurrentNode() + '/clash/proxies/Proxy',
                 method: 'PUT',
                 params: {
                     name: proxyName
