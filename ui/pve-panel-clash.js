@@ -1,57 +1,57 @@
 // Proxmox Clash 插件 - 自动加载版本
 // 此文件会在 PVE Web UI 加载时自动执行
 
+// 兼容性函数：获取当前节点名称
+var getCurrentNode = function() {
+    // 方法1: PVE.Utils.getNode (PVE 8.x)
+    if (typeof PVE !== 'undefined' && PVE.Utils && PVE.Utils.getNode) {
+        try {
+            return PVE.Utils.getNode();
+        } catch (e) {
+            console.warn('[Clash] PVE.Utils.getNode 调用失败:', e);
+        }
+    }
+    
+    // 方法2: PVE.NodeName (PVE 7.x)
+    if (typeof PVE !== 'undefined' && PVE.NodeName) {
+        return PVE.NodeName;
+    }
+    
+    // 方法3: 从 URL 解析
+    try {
+        var path = window.location.pathname;
+        var match = path.match(/\/nodes\/([^\/]+)/);
+        if (match && match[1]) {
+            return match[1];
+        }
+    } catch (e) {
+        console.warn('[Clash] URL 解析失败:', e);
+    }
+    
+    // 方法4: 从页面元素获取
+    try {
+        var nodeElement = document.querySelector('[data-node]');
+        if (nodeElement && nodeElement.getAttribute('data-node')) {
+            return nodeElement.getAttribute('data-node');
+        }
+    } catch (e) {
+        console.warn('[Clash] 页面元素解析失败:', e);
+    }
+    
+    // 方法5: 从全局变量获取
+    if (typeof window.pve_node !== 'undefined') {
+        return window.pve_node;
+    }
+    
+    // 默认值
+    console.warn('[Clash] 无法获取节点名称，使用默认值 "localhost"');
+    return 'localhost';
+};
+
 (function() {
     'use strict';
     
     console.log('[Clash] 插件开始加载...');
-    
-    // 兼容性函数：获取当前节点名称
-    var getCurrentNode = function() {
-        // 方法1: PVE.Utils.getNode (PVE 8.x)
-        if (typeof PVE !== 'undefined' && PVE.Utils && PVE.Utils.getNode) {
-            try {
-                return PVE.Utils.getNode();
-            } catch (e) {
-                console.warn('[Clash] PVE.Utils.getNode 调用失败:', e);
-            }
-        }
-        
-        // 方法2: PVE.NodeName (PVE 7.x)
-        if (typeof PVE !== 'undefined' && PVE.NodeName) {
-            return PVE.NodeName;
-        }
-        
-        // 方法3: 从 URL 解析
-        try {
-            var path = window.location.pathname;
-            var match = path.match(/\/nodes\/([^\/]+)/);
-            if (match && match[1]) {
-                return match[1];
-            }
-        } catch (e) {
-            console.warn('[Clash] URL 解析失败:', e);
-        }
-        
-        // 方法4: 从页面元素获取
-        try {
-            var nodeElement = document.querySelector('[data-node]');
-            if (nodeElement && nodeElement.getAttribute('data-node')) {
-                return nodeElement.getAttribute('data-node');
-            }
-        } catch (e) {
-            console.warn('[Clash] 页面元素解析失败:', e);
-        }
-        
-        // 方法5: 从全局变量获取
-        if (typeof window.pve_node !== 'undefined') {
-            return window.pve_node;
-        }
-        
-        // 默认值
-        console.warn('[Clash] 无法获取节点名称，使用默认值 "localhost"');
-        return 'localhost';
-    };
     
     // 等待 PVE 环境完全加载
     var waitForPVE = function() {
