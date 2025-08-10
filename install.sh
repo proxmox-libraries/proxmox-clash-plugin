@@ -7,7 +7,7 @@ set -e
 
 # 配置变量
 GITHUB_REPO="proxmox-libraries/proxmox-clash-plugin"
-INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/$GITHUB_REPO/main/scripts/install/install_direct.sh"
+INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/$GITHUB_REPO/main/scripts/install/install.sh"
 
 # 颜色输出
 RED=''
@@ -81,7 +81,7 @@ download_and_run() {
     
     # 创建临时目录
     local temp_dir=$(mktemp -d)
-    local install_script="$temp_dir/install_direct.sh"
+    local install_script="$temp_dir/install.sh"
     
     # 下载安装脚本
     if curl -sSL -o "$install_script" "$INSTALL_SCRIPT_URL"; then
@@ -146,7 +146,7 @@ main() {
     # 显示欢迎信息
     show_welcome
 
-    # 解析参数并规范化为 install_direct.sh 可识别的形式
+    # 解析参数并规范化为 install.sh 可识别的形式
     local normalized_version="latest"
     local branch_param=""
     local args=("$@")
