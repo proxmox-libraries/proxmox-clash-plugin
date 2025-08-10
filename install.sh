@@ -112,6 +112,7 @@ show_help() {
     echo "选项:"
     echo "  -v, --version VERSION    安装指定版本"
     echo "  -l, --latest             安装最新版本"
+    echo "  -b, --branch BRANCH      指定 Git 分支 (默认: main)"
     echo "  -c, --check              检查可用版本"
     echo "  -f, --force              强制重新下载"
     echo "  -h, --help               显示此帮助信息"
@@ -119,10 +120,14 @@ show_help() {
     echo "示例:"
     echo "  $0 -l                     # 安装最新版本"
     echo "  $0 -v v1.1.0              # 安装指定版本"
+    echo "  $0 -b main                # 从 main 分支安装最新版本"
+    echo "  $0 -b develop             # 从 develop 分支安装最新版本"
     echo "  $0 -c                    # 检查可用版本"
     echo ""
     echo "🚀 一键安装最新版本:"
     echo "  curl -sSL https://raw.githubusercontent.com/$GITHUB_REPO/main/install.sh | sudo bash -s -- -l"
+    echo "🚀 从 main 分支安装:"
+    echo "  curl -sSL https://raw.githubusercontent.com/$GITHUB_REPO/main/install.sh | sudo bash -s -- -b main"
 }
 
 # 主函数
@@ -132,6 +137,7 @@ main() {
 
     # 解析参数并规范化为 install_direct.sh 可识别的形式
     local normalized_version=""
+    local branch_param=""
 
     if [ $# -eq 0 ]; then
         log_info "未指定版本，将安装最新版本"
@@ -151,6 +157,15 @@ main() {
                     exit 1
                 fi
                 normalized_version="$2"
+                shift
+                ;;
+            -b|--branch)
+                if [ -z "$2" ]; then
+                    log_error "必须在 -b/--branch 后提供分支名称，例如: -b main"
+                    exit 1
+                fi
+                branch_param="-b $2"
+                shift 2
                 ;;
             -c|--check)
                 # 简易检查：列出 GitHub Releases 版本
@@ -168,9 +183,13 @@ main() {
     # 检查系统要求
     check_system
 
-    # 下载并运行安装脚本（只传递规范化后的版本参数）
-    if [ -n "$normalized_version" ]; then
+    # 下载并运行安装脚本（传递版本和分支参数）
+    if [ -n "$normalized_version" ] && [ -n "$branch_param" ]; then
+        download_and_run "$normalized_version" "$branch_param"
+    elif [ -n "$normalized_version" ]; then
         download_and_run "$normalized_version"
+    elif [ -n "$branch_param" ]; then
+        download_and_run "latest" "$branch_param"
     else
         download_and_run
     fi

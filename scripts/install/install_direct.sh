@@ -12,6 +12,7 @@ INSTALL_DIR="/opt/proxmox-clash"
 # 参数解析：兼容 -l/--latest 与 -v/--version，也支持直接传入版本号
 KERNEL_VARIANT="v1"  # 默认选择 v1 变体
 VERIFY_AFTER_INSTALL=false  # 默认不验证
+BRANCH="main"  # 默认分支
 parse_args() {
     VERSION="latest"
     while [ $# -gt 0 ]; do
@@ -26,6 +27,14 @@ parse_args() {
                     exit 1
                 fi
                 VERSION="$2"
+                shift 2
+                ;;
+            -b|--branch)
+                if [ -z "$2" ]; then
+                    log_error "必须在 -b/--branch 后提供分支名称，例如: -b main"
+                    exit 1
+                fi
+                BRANCH="$2"
                 shift 2
                 ;;
             --kernel-variant|--variant)
@@ -166,8 +175,8 @@ download_files() {
             log_info "最新 Release: $latest_tag"
             url="$REPO_URL/archive/refs/tags/$latest_tag.tar.gz"
         else
-            log_warn "无法获取最新 tag，回退到 main 分支"
-            url="$REPO_URL/archive/refs/heads/main.tar.gz"
+            log_warn "无法获取最新 tag，回退到 $BRANCH 分支"
+            url="$REPO_URL/archive/refs/heads/$BRANCH.tar.gz"
         fi
         log_info "下载地址: $url"
         if ! curl -fL --retry 3 -o project.tar.gz "$url"; then
@@ -753,6 +762,7 @@ main() {
     echo "🚀 Proxmox Clash 插件直接安装脚本"
     parse_args "$@"
     echo "版本: $VERSION"
+    echo "分支: $BRANCH"
     echo "内核变体: $KERNEL_VARIANT"
     echo "安装后验证: $([ "$VERIFY_AFTER_INSTALL" = true ] && echo "是" || echo "否")"
     echo ""
@@ -787,12 +797,15 @@ show_help() {
     echo "  版本    指定安装版本 (默认: latest)"
     echo ""
     echo "选项:"
+    echo "  -b, --branch BRANCH  指定 Git 分支 (默认: main)"
     echo "  --verify    安装完成后自动运行验证"
     echo "  --no-verify 跳过安装后验证 (默认)"
     echo ""
     echo "示例:"
     echo "  $0              # 安装最新版本"
     echo "  $0 v1.1.0       # 安装指定版本"
+    echo "  $0 -b main      # 从 main 分支安装最新版本"
+    echo "  $0 -b develop   # 从 develop 分支安装最新版本"
     echo "  $0 --verify     # 安装最新版本并验证"
     echo "  $0 v1.1.0 --verify  # 安装指定版本并验证"
     echo ""
