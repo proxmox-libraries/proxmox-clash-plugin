@@ -128,20 +128,20 @@ Ext.define('PVE.panel.Clash', {
                             }
                         }]
                     }, {
-                               xtype: 'button',
-                               text: '测试连接',
-                               margin: '5 0 0 0',
-                               handler: function() {
-                                   me.testConnection();
-                               }
-                           }, {
-                               xtype: 'button',
-                               text: '版本管理',
-                               margin: '10 0 0 0',
-                               handler: function() {
-                                   me.showVersionManager();
-                               }
-                           }]
+                        xtype: 'button',
+                        text: '测试连接',
+                        margin: '5 0 0 0',
+                        handler: function() {
+                            me.testConnection();
+                        }
+                    }, {
+                        xtype: 'button',
+                        text: '版本管理',
+                        margin: '10 0 0 0',
+                        handler: function() {
+                            me.showVersionManager();
+                        }
+                    }]
                 }]
             }]
         }, {
@@ -214,6 +214,11 @@ Ext.define('PVE.panel.Clash', {
         var uptimeField = me.down('displayfield[name=uptime]');
         var memoryField = me.down('displayfield[name=memory]');
 
+        if (!statusField || !configField || !uptimeField || !memoryField) {
+            console.warn('[Clash] 状态字段未找到，跳过状态刷新');
+            return;
+        }
+
         statusField.setValue('检查中...');
         configField.setValue('-');
         uptimeField.setValue('-');
@@ -272,7 +277,16 @@ Ext.define('PVE.panel.Clash', {
     loadProxies: function() {
         var me = this;
         var grid = me.down('grid');
+        if (!grid) {
+            console.warn('[Clash] 代理网格未找到，跳过加载');
+            return;
+        }
+        
         var store = grid.getStore();
+        if (!store) {
+            console.warn('[Clash] 代理存储未找到，跳过加载');
+            return;
+        }
 
         PVE.Utils.API2Request({
             url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/proxies',
@@ -322,6 +336,11 @@ Ext.define('PVE.panel.Clash', {
         var me = this;
         var urlField = me.down('textfield[name=subscription_url]');
         var nameField = me.down('textfield[name=config_name]');
+
+        if (!urlField || !nameField) {
+            Ext.Msg.alert('错误', '订阅字段未找到');
+            return;
+        }
 
         if (!urlField.getValue()) {
             Ext.Msg.alert('错误', '请输入订阅URL');
@@ -409,22 +428,34 @@ Ext.define('PVE.panel.Clash', {
                         if (data.success) {
                             Ext.Msg.alert('成功', '透明代理已' + action);
                             // 更新复选框状态
-                            Ext.getCmp('tun_enable_checkbox').setValue(enable);
+                            var checkbox = Ext.getCmp('tun_enable_checkbox');
+                            if (checkbox) {
+                                checkbox.setValue(enable);
+                            }
                         } else {
                             Ext.Msg.alert('错误', '操作失败: ' + (data.error || '未知错误'));
                             // 恢复复选框状态
-                            Ext.getCmp('tun_enable_checkbox').setValue(!enable);
+                            var checkbox = Ext.getCmp('tun_enable_checkbox');
+                            if (checkbox) {
+                                checkbox.setValue(!enable);
+                            }
                         }
                     },
                     failure: function(response) {
                         Ext.Msg.alert('错误', '操作失败，请检查网络连接');
                         // 恢复复选框状态
-                        Ext.getCmp('tun_enable_checkbox').setValue(!enable);
+                        var checkbox = Ext.getCmp('tun_enable_checkbox');
+                        if (checkbox) {
+                            checkbox.setValue(!enable);
+                        }
                     }
                 });
             } else {
                 // 用户取消，恢复复选框状态
-                Ext.getCmp('tun_enable_checkbox').setValue(!enable);
+                var checkbox = Ext.getCmp('tun_enable_checkbox');
+                if (checkbox) {
+                    checkbox.setValue(!enable);
+                }
             }
         });
     },
@@ -516,13 +547,19 @@ Ext.define('PVE.panel.Clash', {
             method: 'GET',
             success: function(response) {
                 var data = response.result.data;
-                window.down('[name=currentVersion]').setValue(data.current_version);
+                var currentVersionField = window.down('[name=currentVersion]');
+                if (currentVersionField) {
+                    currentVersionField.setValue(data.current_version);
+                }
                 
                 // 检查更新
                 me.checkForUpdates(window);
             },
             failure: function() {
-                window.down('[name=currentVersion]').setValue('获取失败');
+                var currentVersionField = window.down('[name=currentVersion]');
+                if (currentVersionField) {
+                    currentVersionField.setValue('获取失败');
+                }
             }
         });
     },
@@ -530,25 +567,45 @@ Ext.define('PVE.panel.Clash', {
     checkForUpdates: function(window) {
         var me = this;
         
-        window.down('[name=updateStatus]').setValue('检查中...');
+        var updateStatusField = window.down('[name=updateStatus]');
+        if (updateStatusField) {
+            updateStatusField.setValue('检查中...');
+        }
         
         PVE.Utils.API2Request({
             url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/version/check',
             method: 'GET',
             success: function(response) {
                 var data = response.result.data;
-                window.down('[name=latestVersion]').setValue(data.latest_version);
+                var latestVersionField = window.down('[name=latestVersion]');
+                var updateStatusField = window.down('[name=updateStatus]');
+                var upgradeButton = window.down('[text=升级到最新版本]');
+                
+                if (latestVersionField) {
+                    latestVersionField.setValue(data.latest_version);
+                }
                 
                 if (data.has_update) {
-                    window.down('[name=updateStatus]').setValue('发现新版本，可以升级');
-                    window.down('[text=升级到最新版本]').enable();
+                    if (updateStatusField) {
+                        updateStatusField.setValue('发现新版本，可以升级');
+                    }
+                    if (upgradeButton) {
+                        upgradeButton.enable();
+                    }
                 } else {
-                    window.down('[name=updateStatus]').setValue('已是最新版本');
-                    window.down('[text=升级到最新版本]').disable();
+                    if (updateStatusField) {
+                        updateStatusField.setValue('已是最新版本');
+                    }
+                    if (upgradeButton) {
+                        upgradeButton.disable();
+                    }
                 }
             },
             failure: function() {
-                window.down('[name=updateStatus]').setValue('检查失败');
+                var updateStatusField = window.down('[name=updateStatus]');
+                if (updateStatusField) {
+                    updateStatusField.setValue('检查失败');
+                }
             }
         });
     },
@@ -558,7 +615,10 @@ Ext.define('PVE.panel.Clash', {
         
         Ext.Msg.confirm('确认升级', '确定要升级到最新版本吗？升级过程中服务会短暂停止。', function(btn) {
             if (btn === 'yes') {
-                window.down('[text=升级到最新版本]').setText('升级中...').disable();
+                var upgradeButton = window.down('[text=升级到最新版本]');
+                if (upgradeButton) {
+                    upgradeButton.setText('升级中...').disable();
+                }
                 
                 PVE.Utils.API2Request({
                     url: '/api2/json/nodes/' + PVE.Utils.getNode() + '/clash/version/upgrade',
@@ -571,12 +631,18 @@ Ext.define('PVE.panel.Clash', {
                             location.reload();
                         } else {
                             Ext.Msg.alert('升级失败', '升级过程中出现错误：' + (data.error || '未知错误'));
-                            window.down('[text=升级中...]').setText('升级到最新版本').enable();
+                            var upgradeButton = window.down('[text=升级中...]');
+                            if (upgradeButton) {
+                                upgradeButton.setText('升级到最新版本').enable();
+                            }
                         }
                     },
                     failure: function() {
                         Ext.Msg.alert('升级失败', '升级请求失败，请检查网络连接或查看日志。');
-                        window.down('[text=升级中...]').setText('升级到最新版本').enable();
+                        var upgradeButton = window.down('[text=升级中...]');
+                        if (upgradeButton) {
+                            upgradeButton.setText('升级到最新版本').enable();
+                        }
                     }
                 });
             }
@@ -649,608 +715,230 @@ PVE.panel.Clash.switchProxy = function(proxyName) {
     });
 };
 
-// 注册到数据中心菜单
+// 注册到数据中心菜单 - 使用更安全的方式
 Ext.define('PVE.dc.ClashView', {
     extend: 'PVE.panel.Clash',
     alias: 'widget.pveClashView'
 });
 
-// 添加到主菜单
-Ext.define('PVE.dc.Menu', {
-    override: 'PVE.dc.Menu',
-    
-    initComponent: function() {
-        var me = this;
-        
-        me.callParent();
-        
-        // 添加 Clash 菜单项到数据中心
-        me.items.push({
-            text: 'Clash 控制',
-            iconCls: 'fa fa-cloud',
-            handler: function() {
-                var win = Ext.create('Ext.window.Window', {
-                    title: 'Clash 控制面板',
-                    width: 1400,
-                    height: 900,
-                    layout: 'fit',
-                    items: [{
-                        xtype: 'pveClashView'
-                    }],
-                    maximizable: true,
-                    resizable: true
-                });
-                win.show();
-            }
-        });
-    }
-}); 
-
-// PVE 8.4 兼容注入：如果不存在 PVE.dc.Menu，则在侧边导航（优先）或顶部工具栏注入入口
+// 安全的菜单注入方式 - 避免直接覆盖可能导致的问题
 Ext.onReady(function() {
-    try {
-        if (!Ext.ClassManager.isCreated('PVE.dc.Menu')) {
-            var createClashWindow = function() {
-                var win = Ext.create('Ext.window.Window', {
-                    title: 'Clash 控制面板',
-                    width: 1400,
-                    height: 900,
-                    layout: 'fit',
-                    items: [{ xtype: 'pveClashView' }],
-                    maximizable: true,
-                    resizable: true
-                });
-                win.show();
-            };
-
-            var tryAttachTopButton = function() {
-                console.log('[Clash] 顶部工具栏注入已禁用');
-                return false; // 直接返回 false，不再尝试注入顶部工具栏
-            };
-
-            var tryAttachSideNav = function() {
-                console.log('[Clash] 尝试注入左侧导航树...');
-                
-                // 精确定位 PVE 左侧导航工具栏
-                var target = null;
-                
-                // 方法1: 通过特定的 CSS 类名查找
-                var pveNavToolbar = Ext.ComponentQuery.query('toolbar[cls*="pve-toolbar-bg"][cls*="x-toolbar-vertical"][cls*="x-docked-left"]')[0];
-                
-                if (pveNavToolbar) {
-                    target = pveNavToolbar;
-                    console.log('[Clash] 找到 PVE 左侧导航工具栏:', pveNavToolbar);
-                } else {
-                    // 方法2: 通过 ID 模式查找
-                    var toolbars = Ext.ComponentQuery.query('toolbar');
-                    Ext.Array.each(toolbars, function(tb, idx) {
-                        if (tb && tb.id && tb.id.startsWith('toolbar-') && tb.getEl && tb.getEl()) {
-                            var classes = tb.getEl().dom.className;
-                            if (classes.includes('pve-toolbar-bg') && classes.includes('x-toolbar-vertical') && classes.includes('x-docked-left')) {
-                                target = tb;
-                                console.log('[Clash] 通过 ID 模式找到 PVE 左侧导航工具栏:', tb);
-                                return false;
-                            }
-                        }
-                    });
-                }
-                
-                if (!target) {
-                    // 方法3: 查找包含 treelist-pve-nav 的工具栏
-                    var toolbars = Ext.ComponentQuery.query('toolbar');
-                    Ext.Array.each(toolbars, function(tb, idx) {
-                        if (tb && tb.getEl && tb.getEl()) {
-                            var el = tb.getEl().dom;
-                            var treelist = el.querySelector('.x-treelist-pve-nav');
-                            if (treelist) {
-                                target = tb;
-                                console.log('[Clash] 通过 treelist-pve-nav 找到 PVE 左侧导航工具栏:', tb);
-                                return false;
-                            }
-                        }
-                    });
-                }
-                
-                if (!target) { 
-                    console.log('[Clash] 未找到 PVE 左侧导航工具栏');
-                    return false;
-                }
-                
-                // 查找工具栏内的 treelist 组件
-                var treelist = null;
-                if (target.items && target.items.items) {
-                    Ext.Array.each(target.items.items, function(item) {
-                        if (item && item.xtype === 'treelist') {
-                            treelist = item;
-                            return false;
-                        }
-                    });
-                }
-                
-                if (!treelist) {
-                    console.log('[Clash] 未找到工具栏内的 treelist 组件');
-                    return false;
-                }
-                
-                console.log('[Clash] 找到目标 treelist:', treelist);
-                
-                var store = treelist.getStore ? treelist.getStore() : null;
-                if (!store) { 
-                    console.log('[Clash] 未找到 store');
-                    return false; 
-                }
-                
-                var root = store.getRootNode ? store.getRootNode() : (store.getRoot ? store.getRoot() : null);
-                if (!root) { 
-                    console.log('[Clash] 未找到 root node');
-                    return false; 
-                }
-                
-                console.log('[Clash] 找到 root node:', root);
-                console.log('[Clash] root 子节点数量:', root.childNodes ? root.childNodes.length : 'unknown');
-                
-                // 显示当前导航结构
-                if (root.childNodes) {
-                    console.log('[Clash] 当前导航结构:');
-                    root.childNodes.forEach(function(child, idx) {
-                        console.log('  [' + idx + ']', child.get('text'), '类型:', child.get('xtype'), '叶子:', child.isLeaf());
-                    });
-                }
-                
-                // 已存在则不重复添加
-                var exists = null;
-                if (root.findChild) { 
-                    exists = root.findChild('text', 'Clash', true) || root.findChild('text', 'Clash 控制', true); 
-                }
-                
-                if (!exists) {
-                    console.log('[Clash] 开始添加 Clash 控制节点...');
-                    
-                    // 尝试找到合适的位置插入 Clash 菜单
-                    var insertIndex = -1;
-                    var supportIndex = -1;
-                    
-                    if (root.childNodes) {
-                        // 查找 Support 菜单的位置
-                        Ext.Array.each(root.childNodes, function(child, idx) {
-                            if (child && child.get('text') === 'Support') {
-                                supportIndex = idx;
-                                return false;
-                            }
-                        });
-                        
-                        if (supportIndex >= 0) {
-                            insertIndex = supportIndex + 1;
-                            console.log('[Clash] 将在 Support 菜单后插入，位置:', insertIndex);
-                        } else {
-                            // 如果没有找到 Support，插入到末尾
-                            insertIndex = root.childNodes.length;
-                            console.log('[Clash] 未找到 Support 菜单，将插入到末尾，位置:', insertIndex);
-                        }
-                    }
-                    
-                    // 创建导航节点
-                    var nodeData = { 
-                        text: 'Clash 控制', 
-                        iconCls: 'fa fa-cloud', 
-                        leaf: true,
-                        xtype: 'treenode',
-                        cls: 'clash-nav-item',
-                        // 添加更多属性以确保正确显示
-                        expanded: false,
-                        selectable: true,
-                        // 添加自定义数据用于识别
-                        clashNode: true
-                    };
-                    
-                    var node;
-                    if (insertIndex >= 0 && insertIndex < root.childNodes.length) {
-                        // 在指定位置插入
-                        node = root.insertChild(insertIndex, nodeData);
-                        console.log('[Clash] 在位置', insertIndex, '插入节点成功:', node);
-                    } else {
-                        // 添加到末尾
-                        node = root.appendChild(nodeData);
-                        console.log('[Clash] 添加到末尾成功:', node);
-                    }
-                    
-                    console.log('[Clash] 节点添加成功:', node);
-                    
-                    // 绑定选择事件 - 改进的事件处理
-                    var selectionHandler = function(tl, nodeSel) {
-                        if (nodeSel && (nodeSel === node || nodeSel.get('text') === 'Clash 控制' || nodeSel.get('clashNode'))) {
-                            console.log('[Clash] 用户点击了 Clash 控制菜单');
-                            // 阻止事件冒泡
-                            if (nodeSel.get('clashNode')) {
-                                // 创建并显示 Clash 窗口
-                                createClashWindow();
-                                // 可选：保持节点选中状态
-                                return false;
-                            }
-                        }
-                    };
-                    
-                    // 绑定事件
-                    treelist.on('selectionchange', selectionHandler);
-                    
-                    // 存储事件处理器引用，以便后续清理
-                    node.clashSelectionHandler = selectionHandler;
-                    
-                    // 强制刷新显示 - 改进的刷新策略
-                    try {
-                        // 刷新 treelist
-                        if (treelist.refresh) {
-                            treelist.refresh();
-                        }
-                        
-                        // 刷新视图
-                        if (treelist.getView && treelist.getView().refresh) {
-                            treelist.getView().refresh();
-                        }
-                        
-                        // 触发 store 更新
-                        if (store.fireEvent) {
-                            store.fireEvent('refresh');
-                        }
-                        
-                        // 重新布局
-                        if (treelist.doLayout) {
-                            treelist.doLayout();
-                        }
-                        
-                        // 重新布局工具栏
-                        if (target.doLayout) {
-                            target.doLayout();
-                        }
-                        
-                        // 强制重新渲染整个工具栏
-                        if (target.getEl && target.getEl().dom) {
-                            var toolbarEl = target.getEl().dom;
-                            var treelistEl = toolbarEl.querySelector('.x-treelist-pve-nav');
-                            if (treelistEl) {
-                                // 触发重新布局
-                                if (window.getComputedStyle) {
-                                    var computedStyle = window.getComputedStyle(treelistEl);
-                                    console.log('[Clash] 触发 treelist 重新布局');
-                                }
-                            }
-                        }
-                        
-                        // 添加 CSS 样式以确保正确显示
-                        var style = document.createElement('style');
-                        style.id = 'clash-nav-styles';
-                        style.textContent = `
-                            .clash-nav-item .x-tree-node-text {
-                                color: #333 !important;
-                                font-weight: 500 !important;
-                            }
-                            .clash-nav-item:hover .x-tree-node-text {
-                                color: #007cba !important;
-                            }
-                            .clash-nav-item.x-tree-node-selected .x-tree-node-text {
-                                color: #fff !important;
-                                background-color: #007cba !important;
-                            }
-                        `;
-                        
-                        if (!document.getElementById('clash-nav-styles')) {
-                            document.head.appendChild(style);
-                        }
-                        
-                    } catch (refreshError) {
-                        console.warn('[Clash] 刷新过程中出现警告:', refreshError);
-                    }
-                    
-                    console.log('[Clash] 左侧导航注入完成！');
-                    return true;
-                } else {
-                    console.log('[Clash] Clash 控制节点已存在');
-                    return true;
-                }
-            };
-
-            // 改进的注入状态检查函数
-            window.showClashInjectionStatus = function() {
-                console.log('[Clash] === 注入状态检查 ===');
-                console.log('[Clash] PVE.dc.Menu 存在:', Ext.ClassManager.isCreated('PVE.dc.Menu'));
-                
-                // 查找 PVE 左侧导航工具栏
-                var pveNavToolbar = Ext.ComponentQuery.query('toolbar[cls*="pve-toolbar-bg"][cls*="x-toolbar-vertical"][cls*="x-docked-left"]')[0];
-                console.log('[Clash] PVE 左侧导航工具栏:', pveNavToolbar);
-                
-                if (pveNavToolbar) {
-                    console.log('[Clash] 工具栏 ID:', pveNavToolbar.id);
-                    console.log('[Clash] 工具栏类名:', pveNavToolbar.getEl ? pveNavToolbar.getEl().dom.className : 'N/A');
-                    
-                    // 查找工具栏内的 treelist
-                    var treelist = null;
-                    if (pveNavToolbar.items && pveNavToolbar.items.items) {
-                        Ext.Array.each(pveNavToolbar.items.items, function(item) {
-                            if (item && item.xtype === 'treelist') {
-                                treelist = item;
-                                return false;
-                            }
-                        });
-                    }
-                    
-                    if (treelist) {
-                        console.log('[Clash] 找到 treelist 组件:', treelist);
-                        var store = treelist.getStore();
-                        if (store) {
-                            var root = store.getRootNode ? store.getRootNode() : (store.getRoot ? store.getRoot() : null);
-                            if (root && root.childNodes) {
-                                console.log('[Clash] 当前导航菜单项:');
-                                root.childNodes.forEach(function(child, idx) {
-                                    console.log('  [' + idx + ']', child.get('text'), '叶子:', child.isLeaf(), 'Clash节点:', child.get('clashNode'));
-                                });
-                            }
-                        }
-                    } else {
-                        console.log('[Clash] 未找到工具栏内的 treelist 组件');
-                    }
-                }
-                
-                // 检查是否已存在 Clash 菜单
-                var clashExists = document.querySelector('.clash-nav-item') !== null;
-                var styleExists = document.getElementById('clash-nav-styles') !== null;
-                console.log('[Clash] Clash 菜单已存在:', clashExists);
-                console.log('[Clash] Clash 样式已存在:', styleExists);
-                
-                // 检查 DOM 元素
-                if (clashExists) {
-                    var navItem = document.querySelector('.clash-nav-item');
-                    console.log('[Clash] 导航项 DOM 元素:', navItem);
-                    console.log('[Clash] 导航项类名:', navItem.className);
-                    console.log('[Clash] 导航项文本:', navItem.textContent);
-                }
-                
-                return {
-                    navigation: clashExists,
-                    styles: styleExists,
-                    message: '检查完成，请查看 Console'
-                };
-            };
-            
-            // 手动触发注入的函数（供调试使用）
-            window.forceClashInjection = function() {
-                console.log('[Clash] 手动触发注入...');
-                
-                // 先清理现有元素
-                var existingNav = document.querySelector('.clash-nav-item');
-                if (existingNav) {
-                    existingNav.remove();
-                    console.log('[Clash] 已清理现有导航项');
-                }
-                
-                var existingStyle = document.getElementById('clash-nav-styles');
-                if (existingStyle) {
-                    existingStyle.remove();
-                    console.log('[Clash] 已清理现有样式');
-                }
-                
-                // 执行注入
-                var navResult = tryAttachSideNav();
-                
-                if (navResult) {
-                    console.log('[Clash] 手动注入成功！');
-                    
-                    // 验证注入结果
-                    setTimeout(function() {
-                        var status = window.clashDebugCommands.status();
-                        console.log('[Clash] 注入验证结果:', status);
-                    }, 500);
-                    
-                    return true;
-                } else {
-                    console.log('[Clash] 手动注入失败，请检查 Console 输出');
-                    return false;
-                }
-            };
-            
-            // 智能注入函数 - 等待 PVE 界面完全加载
-            var smartInjection = function() {
-                console.log('[Clash] 开始智能注入...');
-                
-                // 检查 PVE 核心组件是否已加载
-                if (typeof PVE !== 'undefined' && PVE.Utils && PVE.Utils.getNode) {
-                    console.log('[Clash] PVE 核心组件已加载，开始注入...');
-                    
-                    // 检查是否已经成功注入
-                    var existingNav = document.querySelector('.clash-nav-item');
-                    if (existingNav) {
-                        console.log('[Clash] 检测到 Clash 导航项已存在，跳过注入');
-                        return true;
-                    }
-                    
-                    return tryAttachSideNav();
-                } else {
-                    console.log('[Clash] PVE 核心组件未加载，等待中...');
-                    return false;
-                }
-            };
-            
-            // 等待 DOM 完全加载后再开始注入
-            var waitForPVE = function() {
-                if (document.readyState === 'complete') {
-                    console.log('[Clash] DOM 已完全加载，开始智能注入...');
-                    smartInjection();
-                } else {
-                    console.log('[Clash] 等待 DOM 加载完成...');
-                    setTimeout(waitForPVE, 100);
-                }
-            };
-            
-            // 启动等待
-            waitForPVE();
-            
-            // 备用注入策略 - 定时重试机制
-            var backupInjection = function() {
-                var attempts = 0;
-                var maxAttempts = 20;
-                var interval = 2000; // 2秒间隔
-                
-                var backupTask = setInterval(function() {
-                    attempts++;
-                    console.log('[Clash] 备用注入策略 - 第', attempts, '次尝试...');
-                    
-                    // 检查是否已经成功注入（只检查左侧导航）
-                    var navExists = document.querySelector('.clash-nav-item') !== null;
-                    
-                    if (navExists) {
-                        console.log('[Clash] 检测到 Clash 导航项已存在，停止备用注入');
-                        clearInterval(backupTask);
-                        return;
-                    }
-                    
-                    // 尝试注入
-                    var success = smartInjection();
-                    
-                    if (success || attempts >= maxAttempts) {
-                        if (attempts >= maxAttempts) {
-                            console.log('[Clash] 备用注入达到最大尝试次数，停止重试');
-                            console.log('[Clash] 请手动执行: window.forceClashInjection()');
-                            console.log('[Clash] 或使用: window.clashDebugCommands.reInject()');
-                        }
-                        clearInterval(backupTask);
-                    }
-                }, interval);
-                
-                // 5秒后启动备用策略
-                setTimeout(function() {
-                    console.log('[Clash] 启动备用注入策略...');
-                }, 5000);
-                
-                return backupTask; // 返回任务引用，便于后续清理
-            };
-            
-            // 启动备用注入策略
-            backupInjection();
+    // 等待 PVE 环境完全加载
+    var waitForPVE = function() {
+        if (typeof PVE !== 'undefined' && PVE.Utils && PVE.Utils.getNode) {
+            console.log('[Clash] PVE 环境已加载，开始注入菜单...');
+            injectClashMenu();
+        } else {
+            console.log('[Clash] 等待 PVE 环境加载...');
+            setTimeout(waitForPVE, 500);
         }
-    } catch (e) {
-        console.error('[Clash] 注入过程中发生错误:', e);
-    }
+    };
     
-    // 全局调试开关
-    window.clashDebug = true;
-    
-    // 延迟执行一次手动注入（作为保险）
-    setTimeout(function() {
-        if (window.clashDebug) {
-            console.log('[Clash] 延迟执行手动注入...');
-            if (typeof window.forceClashInjection === 'function') {
-                var result = window.forceClashInjection();
-                if (result) {
-                    console.log('[Clash] 延迟注入成功！');
-                } else {
-                    console.log('[Clash] 延迟注入失败，将在下次备用策略中重试');
-                }
-            }
-        }
-    }, 8000); // 增加到8秒，给界面更多时间加载
-    
-    // 添加页面卸载时的清理函数
-    window.addEventListener('beforeunload', function() {
-        if (window.clashDebug) {
-            console.log('[Clash] 页面即将卸载，清理资源...');
-            // 这里可以添加资源清理逻辑
-        }
-    });
-    
-    // 添加全局调试命令
-    window.clashDebugCommands = {
-        // 显示所有可用的注入目标
-        showTargets: function() {
-            console.log('[Clash] === 可用注入目标 ===');
-            
-            // 查找所有可能的导航组件
-            var navs = Ext.ComponentQuery.query('treelist');
-            console.log('[Clash] 导航组件数量:', navs.length);
-            navs.forEach(function(nav, idx) {
-                console.log('[Clash] 导航[' + idx + ']:', {
-                    reference: nav.reference,
-                    cls: nav.cls,
-                    store: nav.getStore ? 'has store' : 'no store'
-                });
-            });
-            
-            return '目标检查完成，请查看 Console';
-        },
-        
-        // 强制重新注入
-        reInject: function() {
-            console.log('[Clash] 强制重新注入...');
-            // 移除现有的 Clash 元素（只清理左侧导航）
-            var existingNav = document.querySelector('.clash-nav-item');
-            
-            if (existingNav) {
-                existingNav.remove();
-                console.log('[Clash] 已移除现有导航项');
+    // 注入 Clash 菜单的函数
+    var injectClashMenu = function() {
+        try {
+            // 检查是否已经注入
+            if (window.clashMenuInjected) {
+                console.log('[Clash] 菜单已注入，跳过');
+                return;
             }
             
-            // 清理 CSS 样式
-            var existingStyle = document.getElementById('clash-nav-styles');
-            if (existingStyle) {
-                existingStyle.remove();
-                console.log('[Clash] 已移除现有样式');
+            // 尝试通过多种方式注入菜单
+            var success = false;
+            
+            // 方法1: 尝试添加到现有菜单
+            if (typeof PVE !== 'undefined' && PVE.dc && PVE.dc.Menu) {
+                try {
+                    // 检查是否可以通过原型扩展
+                    if (PVE.dc.Menu.prototype) {
+                        console.log('[Clash] 通过原型扩展注入菜单...');
+                        success = injectViaPrototype();
+                    }
+                } catch (e) {
+                    console.warn('[Clash] 原型扩展失败:', e);
+                }
             }
             
-            // 重新注入
-            return window.forceClashInjection();
-        },
-        
-        // 清理所有 Clash 相关元素
-        cleanup: function() {
-            console.log('[Clash] 开始清理所有 Clash 相关元素...');
+            // 方法2: 如果方法1失败，尝试直接注入到DOM
+            if (!success) {
+                console.log('[Clash] 尝试直接注入到DOM...');
+                success = injectViaDOM();
+            }
             
-            // 移除导航项
-            var navItems = document.querySelectorAll('.clash-nav-item');
-            navItems.forEach(function(item) {
-                item.remove();
-                console.log('[Clash] 已移除导航项:', item);
-            });
+            if (success) {
+                window.clashMenuInjected = true;
+                console.log('[Clash] 菜单注入成功！');
+            } else {
+                console.log('[Clash] 菜单注入失败，将在下次重试');
+            }
             
-            // 移除样式
-            var styles = document.querySelectorAll('#clash-nav-styles');
-            styles.forEach(function(style) {
-                style.remove();
-                console.log('[Clash] 已移除样式:', style);
-            });
+        } catch (e) {
+            console.error('[Clash] 菜单注入过程中发生错误:', e);
+        }
+    };
+    
+    // 通过原型扩展注入菜单
+    var injectViaPrototype = function() {
+        try {
+            // 检查是否已经存在扩展
+            if (PVE.dc.Menu.prototype.clashMenuAdded) {
+                return true;
+            }
             
-            // 移除事件监听器（通过重新注入来清理）
-            console.log('[Clash] 清理完成，建议重新注入以恢复功能');
+            // 保存原始方法
+            var originalInitComponent = PVE.dc.Menu.prototype.initComponent;
+            
+            // 扩展 initComponent 方法
+            PVE.dc.Menu.prototype.initComponent = function() {
+                var me = this;
+                
+                // 调用原始方法
+                if (originalInitComponent) {
+                    originalInitComponent.call(me);
+                }
+                
+                // 添加 Clash 菜单项
+                if (me.items && !me.clashMenuAdded) {
+                    me.items.push({
+                        text: 'Clash 控制',
+                        iconCls: 'fa fa-cloud',
+                        handler: function() {
+                            createClashWindow();
+                        }
+                    });
+                    me.clashMenuAdded = true;
+                    console.log('[Clash] 通过原型扩展成功添加菜单项');
+                }
+            };
+            
             return true;
-        },
-        
-        // 检查注入状态
-        status: function() {
-            console.log('[Clash] === 注入状态检查 ===');
+        } catch (e) {
+            console.warn('[Clash] 原型扩展失败:', e);
+            return false;
+        }
+    };
+    
+    // 通过DOM直接注入菜单
+    var injectViaDOM = function() {
+        try {
+            // 查找可能的菜单容器
+            var menuContainers = [
+                '.x-toolbar-pve-toolbar',
+                '.pve-toolbar-bg',
+                '.x-toolbar-vertical',
+                '.x-docked-left'
+            ];
             
-            var navExists = document.querySelector('.clash-nav-item') !== null;
-            var styleExists = document.getElementById('clash-nav-styles') !== null;
-            
-            console.log('[Clash] 导航项存在:', navExists);
-            console.log('[Clash] 样式存在:', styleExists);
-            
-            if (navExists) {
-                var navItem = document.querySelector('.clash-nav-item');
-                console.log('[Clash] 导航项详情:', navItem);
+            var container = null;
+            for (var i = 0; i < menuContainers.length; i++) {
+                var selector = menuContainers[i];
+                container = document.querySelector(selector);
+                if (container) {
+                    console.log('[Clash] 找到菜单容器:', selector);
+                    break;
+                }
             }
             
+            if (!container) {
+                console.log('[Clash] 未找到菜单容器');
+                return false;
+            }
+            
+            // 创建 Clash 菜单项
+            var clashMenuItem = document.createElement('div');
+            clashMenuItem.className = 'clash-menu-item';
+            clashMenuItem.innerHTML = '<i class="fa fa-cloud"></i> Clash 控制';
+            clashMenuItem.style.cssText = `
+                padding: 8px 12px;
+                cursor: pointer;
+                color: #333;
+                border-bottom: 1px solid #e0e0e0;
+                transition: background-color 0.2s;
+            `;
+            
+            // 添加悬停效果
+            clashMenuItem.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f5f5f5';
+            });
+            
+            clashMenuItem.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'transparent';
+            });
+            
+            // 添加点击事件
+            clashMenuItem.addEventListener('click', function() {
+                createClashWindow();
+            });
+            
+            // 插入到容器中
+            container.appendChild(clashMenuItem);
+            
+            console.log('[Clash] 通过DOM成功添加菜单项');
+            return true;
+            
+        } catch (e) {
+            console.warn('[Clash] DOM注入失败:', e);
+            return false;
+        }
+    };
+    
+    // 创建 Clash 窗口的函数
+    var createClashWindow = function() {
+        try {
+            var win = Ext.create('Ext.window.Window', {
+                title: 'Clash 控制面板',
+                width: 1400,
+                height: 900,
+                layout: 'fit',
+                items: [{
+                    xtype: 'pveClashView'
+                }],
+                maximizable: true,
+                resizable: true
+            });
+            win.show();
+        } catch (e) {
+            console.error('[Clash] 创建窗口失败:', e);
+            // 备用方案：使用简单的 alert
+            alert('Clash 控制面板功能暂时不可用，请检查控制台错误信息');
+        }
+    };
+    
+    // 启动等待
+    waitForPVE();
+    
+    // 备用注入策略
+    setTimeout(function() {
+        if (!window.clashMenuInjected) {
+            console.log('[Clash] 启动备用注入策略...');
+            injectClashMenu();
+        }
+    }, 3000);
+    
+    // 添加调试命令
+    window.clashDebugCommands = {
+        inject: function() {
+            console.log('[Clash] 手动触发菜单注入...');
+            return injectClashMenu();
+        },
+        
+        status: function() {
             return {
-                navigation: navExists,
-                styles: styleExists,
-                message: '状态检查完成，请查看 Console'
+                injected: window.clashMenuInjected || false,
+                pveLoaded: typeof PVE !== 'undefined',
+                message: 'Clash 菜单注入状态检查完成'
             };
+        },
+        
+        createWindow: function() {
+            createClashWindow();
+            return 'Clash 窗口创建命令已执行';
         }
     };
     
     console.log('[Clash] 插件加载完成！');
     console.log('[Clash] 可用调试命令:');
-    console.log('[Clash]   - window.showClashInjectionStatus() - 检查注入状态');
-    console.log('[Clash]   - window.forceClashInjection() - 手动触发注入');
-    console.log('[Clash]   - window.clashDebugCommands.showTargets() - 显示可用目标');
-    console.log('[Clash]   - window.clashDebugCommands.reInject() - 强制重新注入');
-    console.log('[Clash]   - window.clashDebugCommands.cleanup() - 清理所有元素');
-    console.log('[Clash]   - window.clashDebugCommands.status() - 检查注入状态');
-    console.log('[Clash] 左侧菜单栏注入功能已完成！');
+    console.log('[Clash]   - window.clashDebugCommands.inject() - 手动注入菜单');
+    console.log('[Clash]   - window.clashDebugCommands.status() - 检查状态');
+    console.log('[Clash]   - window.clashDebugCommands.createWindow() - 创建窗口');
 });
