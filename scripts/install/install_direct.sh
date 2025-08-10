@@ -15,46 +15,49 @@ VERIFY_AFTER_INSTALL=false  # 默认不验证
 BRANCH="main"  # 默认分支
 parse_args() {
     VERSION="latest"
-    while [ $# -gt 0 ]; do
-        case "$1" in
+    local args=("$@")
+    local i=0
+
+    while [ $i -lt ${#args[@]} ]; do
+        case "${args[$i]}" in
             -l|--latest)
                 VERSION="latest"
-                shift
+                ((i++))
                 ;;
             -v|--version)
-                if [ -z "$2" ]; then
+                if [ $((i+1)) -ge ${#args[@]} ]; then
                     log_error "必须在 -v/--version 后提供版本号，例如: -v v1.2.0"
                     exit 1
                 fi
-                VERSION="$2"
-                shift 2
+                VERSION="${args[$((i+1))]}"
+                ((i+=2))
                 ;;
             -b|--branch)
-                if [ -z "$2" ]; then
+                if [ $((i+1)) -ge ${#args[@]} ]; then
                     log_error "必须在 -b/--branch 后提供分支名称，例如: -b main"
                     exit 1
                 fi
-                BRANCH="$2"
-                shift 2
+                BRANCH="${args[$((i+1))]}"
+                ((i+=2))
                 ;;
             --kernel-variant|--variant)
-                if [ -z "$2" ]; then
+                if [ $((i+1)) -ge ${#args[@]} ]; then
                     log_error "必须在 --kernel-variant 后提供变体：v1|v2|v3|compatible|auto"
                     exit 1
                 fi
-                case "$2" in
-                    v1|v2|v3|compatible|auto) KERNEL_VARIANT="$2" ;;
-                    *) log_error "无效的变体：$2（可选：v1|v2|v3|compatible|auto）"; exit 1 ;;
+                case "${args[$((i+1))]}" in
+                    v1|v2|v3|compatible|auto) KERNEL_VARIANT="${args[$((i+1))]}" ;;
+                    *) log_error "无效的变体：${args[$((i+1))]}（可选：v1|v2|v3|compatible|auto）"; exit 1 ;;
                 esac
-                shift 2
+                ((i+=2))
                 ;;
             --verify)
                 VERIFY_AFTER_INSTALL=true
-                shift
+                ((i++))
                 ;;
             --no-verify)
                 VERIFY_AFTER_INSTALL=false
-                shift
+                ((i++))
                 ;;
             -h|--help)
                 show_help
@@ -62,8 +65,8 @@ parse_args() {
                 ;;
             *)
                 # 兼容直接传入版本字符串
-                VERSION="$1"
-                shift
+                VERSION="${args[$i]}"
+                ((i++))
                 ;;
         esac
     done
