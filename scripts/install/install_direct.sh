@@ -112,16 +112,8 @@ log_step() {
     echo "[STEP] $1"
 }
 
-# 检测 PVE UI 目录（PVE 8 使用 js，PVE 7 使用 ext6）
+# 检测 PVE UI 目录（已移除Web UI功能）
 detect_pve_ui_dir() {
-    if [ -d "/usr/share/pve-manager/js" ]; then
-        echo "/usr/share/pve-manager/js"
-        return 0
-    fi
-    if [ -d "/usr/share/pve-manager/ext6" ]; then
-        echo "/usr/share/pve-manager/ext6"
-        return 0
-    fi
     echo ""
     return 1
 }
@@ -247,7 +239,7 @@ download_files() {
     sudo mkdir -p "$INSTALL_DIR"
     
     # 复制文件
-    sudo cp -r "$extracted_dir"/{api,ui,service,config} "$INSTALL_DIR/"
+    sudo cp -r "$extracted_dir"/{api,service,config} "$INSTALL_DIR/"
     sudo cp -r "$extracted_dir/scripts" "$INSTALL_DIR/"
     
     # 设置权限
@@ -274,130 +266,12 @@ install_api() {
     fi
 }
 
-# 安装 UI 组件
+# 安装 UI 组件（已移除Web UI功能）
 install_ui() {
-    log_step "安装 UI 组件..."
-    local ui_dir
-    ui_dir=$(detect_pve_ui_dir)
-    if [ -z "$ui_dir" ]; then
-        log_warn "⚠️  未找到 PVE UI 目录（/usr/share/pve-manager/js 或 ext6），跳过 UI 安装"
-        return 0
-    fi
-
-    if [ -f "$INSTALL_DIR/ui/pve-panel-clash.js" ]; then
-        sudo cp "$INSTALL_DIR/ui/pve-panel-clash.js" "$ui_dir/"
-        # 设置正确的权限
-        sudo chown root:root "$ui_dir/pve-panel-clash.js"
-        sudo chmod 644 "$ui_dir/pve-panel-clash.js"
-        log_info "✅ UI 组件已安装到: $ui_dir"
-        
-        # 修改 index.html.tpl 文件
-        modify_html_template
-    else
-        log_warn "⚠️  UI 文件不存在"
-    fi
+    log_step "跳过 UI 组件安装（已移除Web UI功能）..."
+    log_info "✅ 跳过 UI 组件安装"
 }
 
-# 修改 HTML 模板文件
-modify_html_template() {
-    log_step "修改 PVE HTML 模板文件..."
-    
-    local template_file="/usr/share/pve-manager/index.html.tpl"
-    local current_version=$(get_current_version)
-    local timestamp=$(date +%s)
-    local backup_file="/usr/share/pve-manager/index.html.tpl.backup.v${current_version}.${timestamp}"
-    
-    if [ ! -f "$template_file" ]; then
-        log_warn "⚠️  HTML 模板文件不存在: $template_file"
-        return 0
-    fi
-    
-    # 检查是否已经修改过（更精确的检查）
-    if grep -q "pve-panel-clash.js" "$template_file"; then
-        log_info "✅ HTML 模板已经包含 Clash 插件引用，跳过修改"
-        
-        # 检查引用是否正确
-        if grep -q 'src="/pve2/js/pve-panel-clash.js"' "$template_file"; then
-            log_info "✅ 插件引用路径正确"
-        else
-            log_warn "⚠️  发现旧的插件引用，可能需要清理"
-            # 显示当前引用的行
-            local line_num=$(grep -n "pve-panel-clash.js" "$template_file" | head -1 | cut -d: -f1)
-            log_info "  引用位置: 第 $line_num 行"
-            local context=$(grep -A1 -B1 "pve-panel-clash.js" "$template_file")
-            log_info "  引用上下文:"
-            echo "$context" | sed 's/^/    /'
-        fi
-        return 0
-    fi
-    
-    # 检查是否有其他版本的引用需要清理
-    local old_refs=$(grep -n "clash\|Clash" "$template_file" | grep -v "pve-panel-clash.js" || true)
-    if [ -n "$old_refs" ]; then
-        log_warn "⚠️  发现可能的旧版本引用，建议清理："
-        echo "$old_refs" | sed 's/^/    /'
-    fi
-    
-    # 创建备份
-    sudo cp "$template_file" "$backup_file"
-    log_info "✅ 已创建备份: $backup_file"
-    
-    # 查找插入位置（在 pvemanagerlib.js 之后）
-    local insert_after="pvemanagerlib.js?ver=\[% version %]"
-    
-    if grep -q "$insert_after" "$template_file"; then
-        # 使用 sed 在指定行后插入我们的脚本引用
-        sudo sed -i "/$insert_after/a\    <script type=\"text/javascript\" src=\"/pve2/js/pve-panel-clash.js\"></script>" "$template_file"
-        
-        if grep -q "pve-panel-clash.js" "$template_file"; then
-            log_info "✅ HTML 模板修改成功"
-            
-            # 显示修改后的上下文
-            local line_num=$(grep -n "pve-panel-clash.js" "$template_file" | head -1 | cut -d: -f1)
-            log_info "  插入位置: 第 $line_num 行"
-            local context=$(grep -A2 -B2 "pve-panel-clash.js" "$template_file")
-            log_info "  修改后上下文:"
-            echo "$context" | sed 's/^/    /'
-        else
-            log_error "❌ HTML 模板修改失败"
-            # 恢复备份
-            sudo cp "$backup_file" "$template_file"
-            return 1
-        fi
-    else
-        log_warn "⚠️  未找到插入位置，尝试在 head 标签末尾添加"
-        # 备用方案：在 </head> 标签前插入
-        sudo sed -i 's|</head>|    <script type="text/javascript" src="/pve2/js/pve-panel-clash.js"></script>\n  </head>|' "$template_file"
-        
-        if grep -q "pve-panel-clash.js" "$template_file"; then
-            log_info "✅ HTML 模板修改成功（备用方案）"
-            
-            # 显示修改后的上下文
-            local line_num=$(grep -n "pve-panel-clash.js" "$template_file" | head -1 | cut -d: -f1)
-            log_info "  插入位置: 第 $line_num 行"
-            local context=$(grep -A2 -B2 "pve-panel-clash.js" "$template_file")
-            log_info "  修改后上下文:"
-            echo "$context" | sed 's/^/    /'
-        else
-            log_error "❌ HTML 模板修改失败"
-            # 恢复备份
-            sudo cp "$backup_file" "$template_file"
-            return 1
-        fi
-    fi
-    
-    # 验证修改结果
-    log_step "验证 HTML 模板修改..."
-    if grep -q 'src="/pve2/js/pve-panel-clash.js"' "$template_file"; then
-        log_info "✅ 插件引用验证成功"
-        log_info "✅ HTML 模板修改完成，备份文件: $backup_file"
-    else
-        log_error "❌ 插件引用验证失败"
-        # 恢复备份
-        sudo cp "$backup_file" "$template_file"
-        return 1
-    fi
-}
 
 # 安装服务
 install_service() {
@@ -764,17 +638,15 @@ show_result() {
     echo "  卸载插件: proxmox-clash-uninstall"
     echo ""
     echo "🌐 访问地址："
-    echo "  Proxmox Web UI: https://your-pve-host:8006"
+    echo "  命令行管理: 使用 /opt/proxmox-clash/scripts/management/ 下的脚本"
     echo "  Clash API: http://127.0.0.1:9092"
     echo ""
     echo "📖 文档地址："
     echo "  https://proxmox-libraries.github.io/proxmox-clash-plugin/"
     echo ""
     echo "⚠️  重要提示："
-    echo "  - HTML 模板已自动修改，包含 Clash 插件引用"
-    echo "  - 请刷新 Proxmox Web UI 页面以加载插件"
-    echo "  - 如果页面未显示插件，请清除浏览器缓存后重试"
-    echo "  - 安装过程中已创建 HTML 模板备份文件"
+echo "  - 使用命令行脚本管理 Clash 服务"
+echo "  - 所有功能通过命令行脚本提供"
 }
 
 # 主函数
@@ -798,8 +670,7 @@ main() {
     echo "步骤 3: 安装 API..."
     install_api
     
-    echo "步骤 4: 安装 UI..."
-    install_ui
+    echo "步骤 4: 跳过 UI 安装（已移除Web UI功能）..."
     
     echo "步骤 5: 安装服务..."
     install_service

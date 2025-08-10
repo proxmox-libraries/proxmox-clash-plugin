@@ -32,16 +32,8 @@ log_step() {
     echo -e "${BLUE}[STEP]${NC} $1"
 }
 
-# 检测 PVE UI 目录
+# 检测 PVE UI 目录（已移除Web UI功能）
 detect_pve_ui_dir() {
-    if [ -d "/usr/share/pve-manager/js" ]; then
-        echo "/usr/share/pve-manager/js"
-        return 0
-    fi
-    if [ -d "/usr/share/pve-manager/ext6" ]; then
-        echo "/usr/share/pve-manager/ext6"
-        return 0
-    fi
     echo ""
     return 1
 }
@@ -68,27 +60,8 @@ verify_files() {
         all_good=false
     fi
     
-    # 检查 UI 文件
-    local ui_dir
-    ui_dir=$(detect_pve_ui_dir)
-    if [ -n "$ui_dir" ]; then
-        if [ -f "$ui_dir/pve-panel-clash.js" ]; then
-            log_info "✅ UI 文件已安装: $ui_dir/pve-panel-clash.js"
-            
-            # 检查文件权限
-            local perms=$(stat -c %a "$ui_dir/pve-panel-clash.js" 2>/dev/null || echo "unknown")
-            if [ "$perms" = "644" ]; then
-                log_info "✅ UI 文件权限正确: $perms"
-            else
-                log_warn "⚠️  UI 文件权限可能不正确: $perms (期望: 644)"
-            fi
-        else
-            log_error "❌ UI 文件未安装: $ui_dir/pve-panel-clash.js"
-            all_good=false
-        fi
-    else
-        log_warn "⚠️  未找到 PVE UI 目录"
-    fi
+    # 跳过 UI 文件检查（已移除Web UI功能）
+    log_info "✅ 跳过 UI 文件检查（已移除Web UI功能）"
     
     # 检查服务文件
     if [ -f "/etc/systemd/system/clash-meta.service" ]; then
@@ -252,9 +225,9 @@ show_verification_result() {
         echo "  ✅ 服务配置正确"
         echo ""
         echo "🚀 下一步操作："
-        echo "  1. 刷新 Proxmox Web UI 页面"
-        echo "  2. 在左侧菜单中查找 'Clash 控制' 选项"
-        echo "  3. 如果未显示，请清除浏览器缓存后重试"
+        echo "  1. 使用命令行脚本管理服务"
+        echo "  2. 使用 /opt/proxmox-clash/scripts/management/ 下的脚本"
+echo "  3. 查看 CLI_USAGE.md 了解详细使用方法"
         echo "  4. 启动 clash-meta 服务: systemctl start clash-meta"
         echo ""
         echo "🔧 故障排除："

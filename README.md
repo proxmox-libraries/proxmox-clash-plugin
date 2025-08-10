@@ -4,14 +4,14 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Proxmox%20VE-orange.svg)](https://proxmox.com)
 
-一个深度集成到 Proxmox VE Web UI 的 Clash.Meta (mihomo) 原生插件，提供安全透明代理和完整的控制功能。
+一个专为 Proxmox VE 设计的 Clash.Meta (mihomo) 命令行插件，提供安全透明代理和完整的命令行管理功能。
 
 **🎉 最新版本 v1.2.0 现已发布！** - [查看发布说明](docs/releases/)
 
 ## 🚀 功能特性
 
 - ✅ **内置 Clash.Meta (mihomo)** - 使用最新的 mihomo 内核
-- ✅ **原生 Web UI 集成** - 深度集成到 Proxmox Web 界面，使用 ExtJS 组件
+- ✅ **命令行管理** - 完整的命令行管理工具，支持所有功能
 - ✅ **安全透明代理** - 默认关闭，用户手动开启，避免网络中断风险
 - ✅ **订阅管理** - 支持订阅导入、更新、节点切换
 - ✅ **REST API** - 提供完整的 API 接口
@@ -25,8 +25,7 @@
 proxmox-clash-plugin/
 ├── api/
 │   └── Clash.pm                 # PVE API2 后端插件
-├── ui/
-│   └── pve-panel-clash.js       # ExtJS 前端界面
+
 ├── scripts/
 │   ├── install.sh               # 安装脚本
 │   ├── install_with_version.sh  # 智能版本管理安装脚本
@@ -46,7 +45,7 @@ proxmox-clash-plugin/
     ├── installation/            # 安装指南
     ├── configuration/           # 配置管理
     ├── api/                     # API 文档
-    ├── ui/                      # Web UI 文档
+    
     ├── scripts/                 # 脚本工具文档
     ├── development/             # 开发文档
     └── troubleshooting/         # 故障排除
@@ -54,16 +53,16 @@ proxmox-clash-plugin/
 
 ## 📚 文档
 
-📖 **完整文档**: [docs/README.md](docs/README.md) - 详细的文档目录和使用指南
+📖 **使用说明**: [CLI_USAGE.md](CLI_USAGE.md) - 完整的命令行使用说明 | [文档](docs/README.md) - 详细使用指南
 
 ### 快速导航
-- 🚀 [安装指南](docs/installation/README.md) - 详细的安装步骤
-- ⚙️ [快速配置](docs/configuration/quick-start.md) - 快速上手指南
-- 🔧 [配置管理](docs/configuration/README.md) - 配置文件详解
-- 🌐 [Web UI 使用](docs/ui/README.md) - 界面操作说明
-- 📋 [脚本工具](docs/scripts/README.md) - 管理脚本使用
-- 🔄 [版本管理](docs/installation/version-management.md) - 版本管理功能
-- 🛠️ [故障排除](docs/troubleshooting/README.md) - 常见问题解决
+- 🚀 运行 install.sh 进行安装
+- ⚙️ 查看 config/ 目录下的配置文件
+- 🔧 使用 scripts/management/ 下的管理脚本
+
+- 📋 使用 scripts/management/ 下的管理脚本
+- 🔄 使用 scripts/management/version_manager.sh 进行版本管理
+- 🛠️ 查看脚本输出和日志文件
 
 ## 🛠️ 安装方法
 
@@ -116,7 +115,7 @@ chmod +x /opt/proxmox-clash/clash-meta
 sudo cp api/Clash.pm /usr/share/perl5/PVE/API2/
 
 # 4. 安装前端插件
-sudo cp ui/pve-panel-clash.js /usr/share/pve-manager/ext6/
+
 
 # 5. 安装服务
 sudo cp service/clash-meta.service /etc/systemd/system/
@@ -129,7 +128,7 @@ sudo systemctl start clash-meta
 
 ### 1. 访问控制面板
 
-安装完成后，刷新 Proxmox Web UI 页面，在数据中心菜单中会看到 "Clash 控制" 选项。点击后会打开一个完整的控制面板窗口。
+安装完成后，使用命令行脚本管理 Clash 服务。所有功能都通过命令行提供，无需Web界面。
 
 ### 2. 添加订阅
 
@@ -141,7 +140,7 @@ sudo systemctl start clash-meta
 
 **⚠️ 安全提示**：透明代理默认关闭，需要手动开启以避免网络中断风险。
 
-#### 方法一：Web UI 配置（推荐）
+#### 方法一：命令行配置（推荐）
 
 1. 在 "Clash 控制" 面板中找到 "透明代理设置"
 2. 勾选 "启用透明代理" 复选框
@@ -262,7 +261,7 @@ sudo /opt/proxmox-clash/scripts/view_logs.sh -c    # 清空日志
 - **版本详情** - 显示版本发布时间、下载次数、更新说明
 - **自动备份** - 升级前自动创建备份，确保数据安全
 - **降级支持** - 支持降级到较低版本（需确认）
-- **Web UI 集成** - 在控制面板中直接进行版本管理
+- **命令行管理** - 通过命令行脚本进行版本管理
 
 ### 版本管理工具
 
@@ -307,7 +306,7 @@ sudo /opt/proxmox-clash/scripts/install_with_version.sh -c
 
 ### 升级方式
 
-#### 1. Web UI 升级（推荐）
+#### 1. 命令行升级（推荐）
 1. 打开 "Clash 控制" 面板
 2. 点击 "网络设置" 标签页中的 "版本管理" 按钮
 3. 在版本管理窗口中查看当前版本和最新版本
@@ -342,7 +341,7 @@ sudo /opt/proxmox-clash/scripts/upgrade.sh -r backup_20231201_143022
 
 - 升级过程中 clash-meta 服务会短暂停止
 - 升级前会自动创建备份，备份保存在 `/opt/proxmox-clash/backup/`
-- 升级完成后需要刷新 Proxmox Web UI 页面
+- 升级完成后服务会自动重启
 - 配置文件不会被覆盖，用户自定义配置会保留
 
 ## 🔧 API 接口
@@ -395,7 +394,7 @@ ls -la /opt/proxmox-clash/clash-meta
 ls -la /opt/proxmox-clash/config/
 ```
 
-### 2. Web UI 无法访问
+### 2. 命令行功能异常
 
 ```bash
 # 检查端口是否监听
@@ -714,11 +713,11 @@ rules:
 
 ### 多订阅管理
 
-支持多个订阅配置文件，通过 Web UI 切换。
+支持多个订阅配置文件，通过命令行脚本切换。
 
 ### 节点测速
 
-在 Web UI 中可以测试各个节点的延迟。
+通过命令行脚本可以测试各个节点的延迟。
 
 ## 📄 许可证
 
@@ -907,14 +906,14 @@ curl -I --connect-timeout 5 http://127.0.0.1:7890
 | 日志配置 | `/opt/proxmox-clash/config/logrotate.conf` | 日志轮转配置 |
 | 服务文件 | `/etc/systemd/system/clash-meta.service` | systemd 服务文件 |
 | API 插件 | `/usr/share/perl5/PVE/API2/Clash.pm` | PVE API 插件 |
-| UI 插件 | `/usr/share/pve-manager/ext6/pve-panel-clash.js` | Web UI 插件 |
+
 | 日志文件 | `/var/log/proxmox-clash.log` | 插件日志文件 |
 
 ### 🔗 常用 URL
 
 | 功能 | URL | 说明 |
 |------|-----|------|
-| Web UI | `https://your-pve-ip:8006/` | Proxmox Web 界面 |
+
 | Clash API | `http://127.0.0.1:9090` | Clash 控制 API |
 | 代理端口 | `http://127.0.0.1:7890` | HTTP/SOCKS5 代理 |
 | 订阅更新 | `http://127.0.0.1:9090/configs/reload` | 重载配置 |

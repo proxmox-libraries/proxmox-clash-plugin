@@ -42,11 +42,11 @@ show_welcome() {
     echo "  ✅ 一键安装和配置"
     echo "  ✅ 智能版本管理"
     echo "  ✅ 透明代理支持"
-    echo "  ✅ Web UI 管理界面"
+    echo "  ✅ 命令行管理工具"
     echo "  ✅ 自动服务管理"
     echo "  ✅ 配置文件备份"
     echo ""
-    echo "📖 文档地址: https://proxmox-libraries.github.io/proxmox-clash-plugin/"
+    echo "📖 文档地址: https://github.com/proxmox-libraries/proxmox-clash-plugin"
     echo ""
 }
 

@@ -5,16 +5,8 @@ set -e
 
 CLASH_DIR="/opt/proxmox-clash"
 API_DIR="/usr/share/perl5/PVE/API2"
-# 自动检测 PVE UI 目录（PVE 8 使用 js，PVE 7 使用 ext6）
+# 自动检测 PVE UI 目录（已移除Web UI功能）
 detect_pve_ui_dir() {
-    if [ -d "/usr/share/pve-manager/js" ]; then
-        echo "/usr/share/pve-manager/js"
-        return 0
-    fi
-    if [ -d "/usr/share/pve-manager/ext6" ]; then
-        echo "/usr/share/pve-manager/ext6"
-        return 0
-    fi
     echo ""
     return 1
 }
@@ -151,13 +143,8 @@ systemctl daemon-reload
 echo "🗑️ 删除 API 插件..."
 rm -f "$API_DIR/Clash.pm"
 
-# 删除前端插件
-echo "🗑️ 删除前端插件..."
-if [ -n "$UI_DIR" ]; then
-    rm -f "$UI_DIR/pve-panel-clash.js"
-else
-    echo "⚠️  未找到 PVE UI 目录，跳过删除 UI 插件"
-fi
+# 跳过前端插件删除（已移除Web UI功能）
+echo "✅ 跳过前端插件删除（已移除Web UI功能）"
 
 # 恢复 HTML 模板文件
 echo "🔄 恢复 HTML 模板文件..."
@@ -191,5 +178,4 @@ fi
 echo "✅ 卸载完成！"
 echo ""
 echo "📝 注意事项："
-echo "  - 请刷新 Proxmox Web UI 页面"
 echo "  - 如果之前配置了透明代理，可能需要重启网络服务" 

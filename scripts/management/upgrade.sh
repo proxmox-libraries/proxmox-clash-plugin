@@ -16,16 +16,8 @@ log_message() {
 # 配置变量
 CLASH_DIR="/opt/proxmox-clash"
 API_DIR="/usr/share/perl5/PVE/API2"
-# 自动检测 PVE UI 目录（PVE 8 使用 js，PVE 7 使用 ext6）
+# 自动检测 PVE UI 目录（已移除Web UI功能）
 detect_pve_ui_dir() {
-    if [ -d "/usr/share/pve-manager/js" ]; then
-        echo "/usr/share/pve-manager/js"
-        return 0
-    fi
-    if [ -d "/usr/share/pve-manager/ext6" ]; then
-        echo "/usr/share/pve-manager/ext6"
-        return 0
-    fi
     echo ""
     return 1
 }
@@ -179,10 +171,7 @@ create_backup() {
         log_message "DEBUG" "备份 API 插件"
     fi
     
-    if [ -f "$UI_DIR/pve-panel-clash.js" ]; then
-        cp "$UI_DIR/pve-panel-clash.js" "$backup_path/"
-        log_message "DEBUG" "备份 UI 插件"
-    fi
+    log_message "DEBUG" "跳过 UI 插件备份（已移除Web UI功能）"
     
     if [ -d "$CLASH_DIR/config" ]; then
         cp -r "$CLASH_DIR/config" "$backup_path/"
@@ -230,10 +219,7 @@ restore_backup() {
         log_message "DEBUG" "恢复 API 插件"
     fi
     
-    if [ -f "$backup_path/pve-panel-clash.js" ]; then
-        cp "$backup_path/pve-panel-clash.js" "$UI_DIR/"
-        log_message "DEBUG" "恢复 UI 插件"
-    fi
+    log_message "DEBUG" "跳过 UI 插件恢复（已移除Web UI功能）"
     
     if [ -d "$backup_path/config" ]; then
         cp -r "$backup_path/config"/* "$CLASH_DIR/config/"
@@ -333,9 +319,7 @@ perform_upgrade() {
         cp "$API_DIR/Clash.pm" "$backup_temp/"
     fi
     
-    if [ -f "$UI_DIR/pve-panel-clash.js" ]; then
-        cp "$UI_DIR/pve-panel-clash.js" "$backup_temp/"
-    fi
+    log_message "DEBUG" "跳过 UI 插件临时备份（已移除Web UI功能）"
     
     # 安装新版本
     log_message "INFO" "安装新版本文件"
@@ -346,13 +330,8 @@ perform_upgrade() {
         log_message "DEBUG" "更新 API 插件"
     fi
     
-    # 安装 UI 插件
-    if [ -n "$UI_DIR" ] && [ -f "$temp_dir/ui/pve-panel-clash.js" ]; then
-        cp "$temp_dir/ui/pve-panel-clash.js" "$UI_DIR/"
-        log_message "DEBUG" "更新 UI 插件到 $UI_DIR"
-    else
-        log_message "WARN" "未找到 UI 目录或 UI 文件，跳过 UI 更新"
-    fi
+    # 跳过 UI 插件安装（已移除Web UI功能）
+log_message "DEBUG" "跳过 UI 插件安装（已移除Web UI功能）"
     
     # 更新脚本
     if [ -d "$temp_dir/scripts" ]; then
@@ -392,7 +371,7 @@ perform_upgrade() {
     echo "✅ 升级完成: $current_version -> $target_version"
     echo ""
     echo "📝 升级后操作:"
-    echo "  - 刷新 Proxmox Web UI 页面"
+    echo "  - 使用命令行脚本管理服务"
     echo "  - 检查服务状态: systemctl status clash-meta"
     echo "  - 查看日志: /opt/proxmox-clash/scripts/view_logs.sh"
 }
