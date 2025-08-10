@@ -110,16 +110,16 @@ restore_html_template() {
 
 ```bash
 # 基本安装
-sudo ./install_direct.sh
+sudo ./install.sh
 
 # 安装并自动验证
-sudo ./install_direct.sh --verify
+sudo ./install.sh --verify
 
 # 跳过验证
-sudo ./install_direct.sh --no-verify
+sudo ./install.sh --no-verify
 
 # 指定内核变体并验证
-sudo ./install_direct.sh --kernel-variant v2 --verify
+sudo ./install.sh --kernel-variant v2 --verify
 ```
 
 ### 验证脚本

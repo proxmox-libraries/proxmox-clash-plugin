@@ -172,7 +172,7 @@ sudo /opt/proxmox-clash/scripts/management/upgrade.sh -r backup_20231201_143022
 2. **重新安装**
    ```bash
    sudo /opt/proxmox-clash/scripts/management/uninstall.sh
-   sudo bash scripts/install/install_direct.sh
+   sudo bash scripts/install/install.sh
    ```
 
 ## 📞 技术支持

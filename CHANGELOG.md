@@ -18,7 +18,7 @@
 - 更新功能列表，移除Web UI相关描述
 - 修改文档URL
 
-##### `scripts/install/install_direct.sh`
+##### `scripts/install/install.sh`
 - 修改`detect_pve_ui_dir`函数，始终返回空字符串
 - 修改`install_ui`函数，跳过UI安装
 - 删除`modify_html_template`函数

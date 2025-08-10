@@ -14,7 +14,7 @@ git clone https://github.com/proxmox-libraries/proxmox-clash-plugin.git
 cd proxmox-clash-plugin
 
 # 安装并验证
-sudo ./scripts/install/install_direct.sh --verify
+sudo ./scripts/install/install.sh --verify
 ```
 
 ## 📋 安装选项
@@ -95,7 +95,7 @@ window.clashDebugCommands.inject()
 ├── clash-meta                         # Clash 可执行文件
 ├── config/config.yaml                 # 配置文件
 ├── scripts/                           # 管理脚本
-│   ├── install/install_direct.sh     # 安装脚本
+│   ├── install/install.sh     # 安装脚本
 │   ├── management/                   # 管理脚本
 │   └── utils/                        # 工具脚本
 └── service/clash-meta.service        # 服务文件

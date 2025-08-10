@@ -68,13 +68,13 @@ sudo chmod +x "$INSTALL_DIR/scripts/management/"*.sh
 ### 安装选项增强
 ```bash
 # 安装时自动验证
-sudo ./install_direct.sh --verify
+sudo ./install.sh --verify
 
 # 跳过验证
-sudo ./install_direct.sh --no-verify
+sudo ./install.sh --no-verify
 
 # 指定内核变体并验证
-sudo ./install_direct.sh --kernel-variant v2 --verify
+sudo ./install.sh --kernel-variant v2 --verify
 ```
 
 ### 验证脚本

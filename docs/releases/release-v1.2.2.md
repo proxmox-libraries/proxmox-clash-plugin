@@ -36,13 +36,13 @@ v1.2.2 聚焦于 mihomo 最新版资产命名适配与下载器健壮性提升�
 
 ```bash
 # 最新版本（默认 v1 变体）
-sudo bash /opt/proxmox-clash/scripts/install/install_direct.sh -l
+sudo bash /opt/proxmox-clash/scripts/install/install.sh -l
 
 # 指定 mihomo 变体（如 v3）
-sudo bash /opt/proxmox-clash/scripts/install/install_direct.sh -l --kernel-variant v3
+sudo bash /opt/proxmox-clash/scripts/install/install.sh -l --kernel-variant v3
 
 # 指定插件版本（自动标准化为 v 前缀）
-sudo bash /opt/proxmox-clash/scripts/install/install_direct.sh v1.2.2
+sudo bash /opt/proxmox-clash/scripts/install/install.sh v1.2.2
 ```
 
 ## 🔧 升级指南
@@ -54,7 +54,7 @@ sudo /opt/proxmox-clash/scripts/management/upgrade.sh -l
 - 或重新拉取并执行最新安装脚本（受限网络建议附加代理与 no-cache）：
 ```bash
 curl -H "Cache-Control: no-cache" -sSL \
-  https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install_direct.sh \
+  https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install.sh \
   | sudo bash -s -- -l
 ```
 - 升级后验证：

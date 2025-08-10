@@ -41,7 +41,7 @@ title: Proxmox Clash 插件文档
 ```
 scripts/
 ├── install/           # 安装相关脚本
-│   └── install_direct.sh
+│   └── install.sh
 ├── management/        # 管理和维护脚本
 │   ├── upgrade.sh
 │   ├── version_manager.sh
@@ -59,7 +59,7 @@ scripts/
 curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash
 
 # 直接脚本安装
-curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install_direct.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install.sh | sudo bash
 ```
 
 ### 🔗 快捷命令

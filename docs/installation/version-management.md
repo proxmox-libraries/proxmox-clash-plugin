@@ -64,22 +64,22 @@ echo "当前版本: $version1, 最新版本: $version2"
 
 ### 2. 智能安装脚本
 
-`install_direct.sh` 结合版本管理功能的安装脚本。
+`install.sh` 结合版本管理功能的安装脚本。
 
 #### 使用方法
 
 ```bash
 # 安装最新版本
-sudo /opt/proxmox-clash/scripts/install/install_direct.sh -l
+sudo /opt/proxmox-clash/scripts/install/install.sh -l
 
 # 安装指定版本
-sudo /opt/proxmox-clash/scripts/install/install_direct.sh -v v1.1.0
+sudo /opt/proxmox-clash/scripts/install/install.sh -v v1.1.0
 
 # 查看可用版本
-sudo /opt/proxmox-clash/scripts/install/install_direct.sh -c
+sudo /opt/proxmox-clash/scripts/install/install.sh -c
 
 # 检查依赖
-sudo /opt/proxmox-clash/scripts/install/install_direct.sh --check-deps
+sudo /opt/proxmox-clash/scripts/install/install.sh --check-deps
 ```
 
 ## 🔄 升级流程
@@ -241,7 +241,7 @@ sudo /opt/proxmox-clash/scripts/management/upgrade.sh -l
 
 ```bash
 # 在测试环境先验证新版本
-sudo /opt/proxmox-clash/scripts/install/install_direct.sh -v v1.1.0
+sudo /opt/proxmox-clash/scripts/install/install.sh -v v1.1.0
 # 测试功能正常后再在生产环境升级
 ```
 

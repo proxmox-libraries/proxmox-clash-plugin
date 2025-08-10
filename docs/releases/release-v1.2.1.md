@@ -47,11 +47,11 @@ v1.2.1 聚焦于安装器稳定性与平台兼容性修复，显著提升在受�
 sudo /opt/proxmox-clash/scripts/management/upgrade.sh -l
 
 # 或重新拉取并执行最新安装脚本
-curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install_direct.sh | \
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install.sh | \
   sudo bash -s -- -l
 
 # 需要指定 mihomo 变体时（默认 v1）
-sudo /opt/proxmox-clash/scripts/install/install_direct.sh -l --kernel-variant v3
+sudo /opt/proxmox-clash/scripts/install/install.sh -l --kernel-variant v3
 ```
 
 ### 升级后验证
