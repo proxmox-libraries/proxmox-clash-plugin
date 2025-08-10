@@ -136,36 +136,36 @@ main() {
     show_welcome
 
     # 解析参数并规范化为 install_direct.sh 可识别的形式
-    local normalized_version=""
+    local normalized_version="latest"
     local branch_param=""
+    local args=("$@")
+    local i=0
 
-    if [ $# -eq 0 ]; then
-        log_info "未指定版本，将安装最新版本"
-        normalized_version="latest"
-    else
-        case "$1" in
+    while [ $i -lt ${#args[@]} ]; do
+        case "${args[$i]}" in
             -h|--help)
                 show_help
                 exit 0
                 ;;
             -l|--latest)
                 normalized_version="latest"
+                ((i++))
                 ;;
             -v|--version)
-                if [ -z "$2" ]; then
+                if [ $((i+1)) -ge ${#args[@]} ]; then
                     log_error "必须在 -v/--version 后提供版本号，例如: -v v1.2.0"
                     exit 1
                 fi
-                normalized_version="$2"
-                shift
+                normalized_version="${args[$((i+1))]}"
+                ((i+=2))
                 ;;
             -b|--branch)
-                if [ -z "$2" ]; then
+                if [ $((i+1)) -ge ${#args[@]} ]; then
                     log_error "必须在 -b/--branch 后提供分支名称，例如: -b main"
                     exit 1
                 fi
-                branch_param="-b $2"
-                shift 2
+                branch_param="-b ${args[$((i+1))]}"
+                ((i+=2))
                 ;;
             -c|--check)
                 # 简易检查：列出 GitHub Releases 版本
@@ -175,10 +175,11 @@ main() {
                 ;;
             *)
                 # 兼容直接传入具体版本
-                normalized_version="$1"
+                normalized_version="${args[$i]}"
+                ((i++))
                 ;;
         esac
-    fi
+    done
 
     # 检查系统要求
     check_system
