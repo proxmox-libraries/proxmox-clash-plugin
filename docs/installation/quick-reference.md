@@ -67,6 +67,24 @@ grep -n "pve-panel-clash.js" /usr/share/pve-manager/index.html.tpl
 
 # 查看备份文件
 ls -la /usr/share/pve-manager/index.html.tpl*
+
+# 菜单滚动功能测试
+sudo /opt/proxmox-clash/scripts/utils/test_menu_scroll.sh
+```
+
+### 浏览器控制台命令
+```javascript
+// 检查插件状态
+window.clashDebugCommands.status()
+
+// 手动修复菜单滚动
+window.clashDebugCommands.fixScroll()
+
+// 测试菜单滚动功能
+window.clashDebugCommands.testScroll()
+
+// 手动触发菜单注入
+window.clashDebugCommands.inject()
 ```
 
 ## 📁 文件结构
@@ -116,6 +134,7 @@ sudo /opt/proxmox-clash/scripts/management/uninstall.sh
 | 安装验证 | 无 | 完整验证 |
 | 错误处理 | 基础 | 全面 |
 | 回滚支持 | 无 | 完整支持 |
+| 菜单滚动功能 | 固定位置 | 智能滚动 |
 
 ## 🎯 最佳实践
 

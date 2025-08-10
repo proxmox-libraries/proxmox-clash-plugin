@@ -166,6 +166,24 @@ sudo journalctl -u clash-meta --since "1 hour ago"
 2. 查看详细日志：`sudo journalctl -u clash-meta -f`
 3. 验证端口是否被占用
 
+### 菜单无法滚动
+
+**问题描述**：Clash 菜单位置固定，无法通过鼠标滚轮滚动
+
+**解决方案**：
+1. **自动修复**：菜单滚动功能已在新版本中自动启用
+2. **手动修复**：使用浏览器控制台命令：
+   ```javascript
+   window.clashDebugCommands.fixScroll()
+   ```
+3. **测试功能**：验证滚动功能是否正常：
+   ```javascript
+   window.clashDebugCommands.testScroll()
+   ```
+4. **运行测试脚本**：`sudo /opt/proxmox-clash/scripts/utils/test_menu_scroll.sh`
+
+**技术说明**：v1.2.7 版本新增了智能滚动检测、滚动包装器创建和自定义滚动条样式
+
 ## 🔗 相关链接
 
 - [📖 安装改进详情](installation-improvements.md) - v1.2.7 完整改进说明
@@ -173,6 +191,7 @@ sudo journalctl -u clash-meta --since "1 hour ago"
 - [🔍 故障排除指南](../troubleshooting/) - 详细问题解决方案
 - [⚙️ 配置指南](../configuration/) - 插件配置说明
 - [📚 开发文档](../development/) - 开发者资源
+- [🖱️ 菜单滚动修复](menu-scroll-fix.md) - 菜单滚动功能修复说明
 
 ---
 

@@ -130,6 +130,11 @@
             if (success) {
                 window.clashMenuInjected = true;
                 console.log('[Clash] 菜单注入成功！');
+                
+                // 注入成功后，确保所有菜单都支持滚动
+                setTimeout(function() {
+                    ensureMenuScrollability();
+                }, 1000);
             } else {
                 console.log('[Clash] 菜单注入失败，将在下次重试');
             }
@@ -171,6 +176,45 @@
                     me.clashMenuAdded = true;
                     console.log('[Clash] 通过原型扩展成功添加菜单项');
                 }
+                
+                // 确保菜单支持滚动
+                me.on('afterrender', function() {
+                    var menuEl = me.getEl();
+                    if (menuEl) {
+                        var menuBody = menuEl.down('.x-menu-body');
+                        if (menuBody) {
+                            // 添加滚动样式
+                            menuBody.setStyle({
+                                'max-height': '400px',
+                                'overflow-y': 'auto',
+                                'overflow-x': 'hidden'
+                            });
+                            
+                            // 添加自定义滚动条样式
+                            var styleId = 'clash-menu-scroll-style';
+                            if (!document.getElementById(styleId)) {
+                                var style = document.createElement('style');
+                                style.id = styleId;
+                                style.textContent = `
+                                    .x-menu-body::-webkit-scrollbar {
+                                        width: 6px;
+                                    }
+                                    .x-menu-body::-webkit-scrollbar-track {
+                                        background: transparent;
+                                    }
+                                    .x-menu-body::-webkit-scrollbar-thumb {
+                                        background: #ccc;
+                                        border-radius: 3px;
+                                    }
+                                    .x-menu-body::-webkit-scrollbar-thumb:hover {
+                                        background: #999;
+                                    }
+                                `;
+                                document.head.appendChild(style);
+                            }
+                        }
+                    }
+                });
             };
             
             return true;
@@ -206,6 +250,63 @@
                 return false;
             }
             
+            // 检查容器是否支持滚动，如果不支持则添加滚动功能
+            var needsScrollWrapper = false;
+            if (container.scrollHeight > container.clientHeight) {
+                needsScrollWrapper = true;
+            }
+            
+            // 如果容器需要滚动包装器，创建一个
+            var scrollContainer = container;
+            if (needsScrollWrapper) {
+                // 检查是否已经有滚动包装器
+                var existingWrapper = container.querySelector('.clash-scroll-wrapper');
+                if (!existingWrapper) {
+                    // 创建滚动包装器
+                    var wrapper = document.createElement('div');
+                    wrapper.className = 'clash-scroll-wrapper';
+                    wrapper.style.cssText = `
+                        max-height: 100%;
+                        overflow-y: auto;
+                        overflow-x: hidden;
+                        scrollbar-width: thin;
+                        scrollbar-color: #ccc transparent;
+                    `;
+                    
+                    // 添加自定义滚动条样式
+                    var style = document.createElement('style');
+                    style.textContent = `
+                        .clash-scroll-wrapper::-webkit-scrollbar {
+                            width: 6px;
+                        }
+                        .clash-scroll-wrapper::-webkit-scrollbar-track {
+                            background: transparent;
+                        }
+                        .clash-scroll-wrapper::-webkit-scrollbar-thumb {
+                            background: #ccc;
+                            border-radius: 3px;
+                        }
+                        .clash-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+                            background: #999;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                    
+                    // 将现有内容移动到包装器中
+                    var fragment = document.createDocumentFragment();
+                    while (container.firstChild) {
+                        fragment.appendChild(container.firstChild);
+                    }
+                    wrapper.appendChild(fragment);
+                    container.appendChild(wrapper);
+                    scrollContainer = wrapper;
+                    
+                    console.log('[Clash] 已为菜单容器添加滚动功能');
+                } else {
+                    scrollContainer = existingWrapper;
+                }
+            }
+            
             // 创建 Clash 菜单项
             var clashMenuItem = document.createElement('div');
             clashMenuItem.className = 'clash-menu-item';
@@ -216,6 +317,9 @@
                 color: #333;
                 border-bottom: 1px solid #e0e0e0;
                 transition: background-color 0.2s;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             `;
             
             // 添加悬停效果
@@ -232,10 +336,15 @@
                 createClashWindow();
             });
             
-            // 插入到容器中
-            container.appendChild(clashMenuItem);
+            // 插入到滚动容器中
+            scrollContainer.appendChild(clashMenuItem);
             
-            console.log('[Clash] 通过DOM成功添加菜单项');
+            // 如果添加了滚动包装器，确保滚动到底部以显示新菜单项
+            if (needsScrollWrapper && scrollContainer !== container) {
+                scrollContainer.scrollTop = scrollContainer.scrollHeight;
+            }
+            
+            console.log('[Clash] 通过DOM成功添加菜单项，滚动功能已启用');
             return true;
             
         } catch (e) {
@@ -244,6 +353,77 @@
         }
     };
     
+    // 确保菜单支持滚动的函数
+    var ensureMenuScrollability = function() {
+        try {
+            console.log('[Clash] 检查并修复菜单滚动功能...');
+            
+            // 查找所有可能的菜单容器
+            var selectors = [
+                '.x-toolbar-pve-toolbar',
+                '.pve-toolbar-bg',
+                '.x-toolbar-vertical',
+                '.x-docked-left',
+                '.x-menu-body',
+                '.x-menu'
+            ];
+            
+            selectors.forEach(function(selector) {
+                var elements = document.querySelectorAll(selector);
+                elements.forEach(function(element) {
+                    // 检查元素是否需要滚动
+                    if (element.scrollHeight > element.clientHeight) {
+                        // 如果元素没有滚动样式，添加滚动功能
+                        if (getComputedStyle(element).overflowY === 'visible') {
+                            element.style.overflowY = 'auto';
+                            element.style.overflowX = 'hidden';
+                            element.style.maxHeight = '100%';
+                            
+                            // 添加自定义滚动条样式
+                            element.classList.add('clash-scrollable');
+                            
+                            console.log('[Clash] 已为元素添加滚动功能:', selector);
+                        }
+                    }
+                });
+            });
+            
+            // 添加全局滚动条样式
+            var styleId = 'clash-global-scroll-style';
+            if (!document.getElementById(styleId)) {
+                var style = document.createElement('style');
+                style.id = styleId;
+                style.textContent = `
+                    .clash-scrollable::-webkit-scrollbar {
+                        width: 6px;
+                    }
+                    .clash-scrollable::-webkit-scrollbar-track {
+                        background: transparent;
+                    }
+                    .clash-scrollable::-webkit-scrollbar-thumb {
+                        background: #ccc;
+                        border-radius: 3px;
+                    }
+                    .clash-scrollable::-webkit-scrollbar-thumb:hover {
+                        background: #999;
+                    }
+                    
+                    /* 确保菜单项在滚动时保持可见 */
+                    .clash-menu-item {
+                        position: relative;
+                        z-index: 1000;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            console.log('[Clash] 菜单滚动功能检查和修复完成');
+            
+        } catch (e) {
+            console.warn('[Clash] 菜单滚动功能检查失败:', e);
+        }
+    };
+
     // 创建 Clash 窗口的函数
     var createClashWindow = function() {
         try {
@@ -295,6 +475,35 @@
         createWindow: function() {
             createClashWindow();
             return 'Clash 窗口创建命令已执行';
+        },
+        
+        fixScroll: function() {
+            console.log('[Clash] 手动修复菜单滚动功能...');
+            ensureMenuScrollability();
+            return '菜单滚动功能修复命令已执行';
+        },
+        
+        testScroll: function() {
+            console.log('[Clash] 测试菜单滚动功能...');
+            var scrollableElements = document.querySelectorAll('.clash-scrollable, .clash-scroll-wrapper');
+            var result = {
+                total: scrollableElements.length,
+                elements: []
+            };
+            
+            scrollableElements.forEach(function(el, index) {
+                result.elements.push({
+                    index: index,
+                    selector: el.className,
+                    scrollHeight: el.scrollHeight,
+                    clientHeight: el.clientHeight,
+                    needsScroll: el.scrollHeight > el.clientHeight,
+                    hasScrollStyle: getComputedStyle(el).overflowY === 'auto'
+                });
+            });
+            
+            console.log('[Clash] 滚动功能测试结果:', result);
+            return result;
         }
     };
     
