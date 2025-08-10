@@ -1,3 +1,263 @@
+// Proxmox Clash 插件 - 自动加载版本
+// 此文件会在 PVE Web UI 加载时自动执行
+
+(function() {
+    'use strict';
+    
+    console.log('[Clash] 插件开始加载...');
+    
+    // 等待 PVE 环境完全加载
+    var waitForPVE = function() {
+        if (typeof PVE !== 'undefined' && PVE.Utils && PVE.Utils.getNode) {
+            console.log('[Clash] PVE 环境已加载，开始注册插件...');
+            registerClashPlugin();
+        } else {
+            console.log('[Clash] 等待 PVE 环境加载...');
+            setTimeout(waitForPVE, 500);
+        }
+    };
+    
+    // 注册 Clash 插件
+    var registerClashPlugin = function() {
+        try {
+            // 检查是否已经注册
+            if (window.clashPluginRegistered) {
+                console.log('[Clash] 插件已注册，跳过');
+                return;
+            }
+            
+            // 注册到 PVE 插件系统
+            if (typeof PVE !== 'undefined' && PVE.plugins) {
+                PVE.plugins.register('clash', {
+                    name: 'Clash 控制',
+                    icon: 'fa fa-cloud',
+                    handler: function() {
+                        createClashWindow();
+                    }
+                });
+                console.log('[Clash] 成功注册到 PVE 插件系统');
+            }
+            
+            // 标记为已注册
+            window.clashPluginRegistered = true;
+            
+            // 注入菜单
+            injectClashMenu();
+            
+        } catch (e) {
+            console.error('[Clash] 插件注册失败:', e);
+        }
+    };
+    
+    // 注入 Clash 菜单
+    var injectClashMenu = function() {
+        try {
+            // 检查是否已经注入
+            if (window.clashMenuInjected) {
+                console.log('[Clash] 菜单已注入，跳过');
+                return;
+            }
+            
+            // 尝试通过多种方式注入菜单
+            var success = false;
+            
+            // 方法1: 尝试添加到现有菜单
+            if (typeof PVE !== 'undefined' && PVE.dc && PVE.dc.Menu) {
+                try {
+                    // 检查是否可以通过原型扩展
+                    if (PVE.dc.Menu.prototype) {
+                        console.log('[Clash] 通过原型扩展注入菜单...');
+                        success = injectViaPrototype();
+                    }
+                } catch (e) {
+                    console.warn('[Clash] 原型扩展失败:', e);
+                }
+            }
+            
+            // 方法2: 如果方法1失败，尝试直接注入到DOM
+            if (!success) {
+                console.log('[Clash] 尝试直接注入到DOM...');
+                success = injectViaDOM();
+            }
+            
+            if (success) {
+                window.clashMenuInjected = true;
+                console.log('[Clash] 菜单注入成功！');
+            } else {
+                console.log('[Clash] 菜单注入失败，将在下次重试');
+            }
+            
+        } catch (e) {
+            console.error('[Clash] 菜单注入过程中发生错误:', e);
+        }
+    };
+    
+    // 通过原型扩展注入菜单
+    var injectViaPrototype = function() {
+        try {
+            // 检查是否已经存在扩展
+            if (PVE.dc.Menu.prototype.clashMenuAdded) {
+                return true;
+            }
+            
+            // 保存原始方法
+            var originalInitComponent = PVE.dc.Menu.prototype.initComponent;
+            
+            // 扩展 initComponent 方法
+            PVE.dc.Menu.prototype.initComponent = function() {
+                var me = this;
+                
+                // 调用原始方法
+                if (originalInitComponent) {
+                    originalInitComponent.call(me);
+                }
+                
+                // 添加 Clash 菜单项
+                if (me.items && !me.clashMenuAdded) {
+                    me.items.push({
+                        text: 'Clash 控制',
+                        iconCls: 'fa fa-cloud',
+                        handler: function() {
+                            createClashWindow();
+                        }
+                    });
+                    me.clashMenuAdded = true;
+                    console.log('[Clash] 通过原型扩展成功添加菜单项');
+                }
+            };
+            
+            return true;
+        } catch (e) {
+            console.warn('[Clash] 原型扩展失败:', e);
+            return false;
+        }
+    };
+    
+    // 通过DOM直接注入菜单
+    var injectViaDOM = function() {
+        try {
+            // 查找可能的菜单容器
+            var menuContainers = [
+                '.x-toolbar-pve-toolbar',
+                '.pve-toolbar-bg',
+                '.x-toolbar-vertical',
+                '.x-docked-left'
+            ];
+            
+            var container = null;
+            for (var i = 0; i < menuContainers.length; i++) {
+                var selector = menuContainers[i];
+                container = document.querySelector(selector);
+                if (container) {
+                    console.log('[Clash] 找到菜单容器:', selector);
+                    break;
+                }
+            }
+            
+            if (!container) {
+                console.log('[Clash] 未找到菜单容器');
+                return false;
+            }
+            
+            // 创建 Clash 菜单项
+            var clashMenuItem = document.createElement('div');
+            clashMenuItem.className = 'clash-menu-item';
+            clashMenuItem.innerHTML = '<i class="fa fa-cloud"></i> Clash 控制';
+            clashMenuItem.style.cssText = `
+                padding: 8px 12px;
+                cursor: pointer;
+                color: #333;
+                border-bottom: 1px solid #e0e0e0;
+                transition: background-color 0.2s;
+            `;
+            
+            // 添加悬停效果
+            clashMenuItem.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f5f5f5';
+            });
+            
+            clashMenuItem.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'transparent';
+            });
+            
+            // 添加点击事件
+            clashMenuItem.addEventListener('click', function() {
+                createClashWindow();
+            });
+            
+            // 插入到容器中
+            container.appendChild(clashMenuItem);
+            
+            console.log('[Clash] 通过DOM成功添加菜单项');
+            return true;
+            
+        } catch (e) {
+            console.warn('[Clash] DOM注入失败:', e);
+            return false;
+        }
+    };
+    
+    // 创建 Clash 窗口的函数
+    var createClashWindow = function() {
+        try {
+            var win = Ext.create('Ext.window.Window', {
+                title: 'Clash 控制面板',
+                width: 1400,
+                height: 900,
+                layout: 'fit',
+                items: [{
+                    xtype: 'pveClashView'
+                }],
+                maximizable: true,
+                resizable: true
+            });
+            win.show();
+        } catch (e) {
+            console.error('[Clash] 创建窗口失败:', e);
+            // 备用方案：使用简单的 alert
+            alert('Clash 控制面板功能暂时不可用，请检查控制台错误信息');
+        }
+    };
+    
+    // 启动等待
+    waitForPVE();
+    
+    // 备用注入策略
+    setTimeout(function() {
+        if (!window.clashMenuInjected) {
+            console.log('[Clash] 启动备用注入策略...');
+            injectClashMenu();
+        }
+    }, 3000);
+    
+    // 添加调试命令
+    window.clashDebugCommands = {
+        inject: function() {
+            console.log('[Clash] 手动触发菜单注入...');
+            return injectClashMenu();
+        },
+        
+        status: function() {
+            return {
+                injected: window.clashMenuInjected || false,
+                pveLoaded: typeof PVE !== 'undefined',
+                message: 'Clash 菜单注入状态检查完成'
+            };
+        },
+        
+        createWindow: function() {
+            createClashWindow();
+            return 'Clash 窗口创建命令已执行';
+        }
+    };
+    
+    console.log('[Clash] 插件加载完成！');
+    console.log('[Clash] 可用调试命令:');
+    console.log('[Clash]   - window.clashDebugCommands.inject() - 手动注入菜单');
+    console.log('[Clash]   - window.clashDebugCommands.status() - 检查状态');
+    console.log('[Clash]   - window.clashDebugCommands.createWindow() - 创建窗口');
+})();
+
 Ext.define('PVE.panel.Clash', {
     extend: 'Ext.panel.Panel',
     xtype: 'pveClashPanel',
@@ -719,226 +979,4 @@ PVE.panel.Clash.switchProxy = function(proxyName) {
 Ext.define('PVE.dc.ClashView', {
     extend: 'PVE.panel.Clash',
     alias: 'widget.pveClashView'
-});
-
-// 安全的菜单注入方式 - 避免直接覆盖可能导致的问题
-Ext.onReady(function() {
-    // 等待 PVE 环境完全加载
-    var waitForPVE = function() {
-        if (typeof PVE !== 'undefined' && PVE.Utils && PVE.Utils.getNode) {
-            console.log('[Clash] PVE 环境已加载，开始注入菜单...');
-            injectClashMenu();
-        } else {
-            console.log('[Clash] 等待 PVE 环境加载...');
-            setTimeout(waitForPVE, 500);
-        }
-    };
-    
-    // 注入 Clash 菜单的函数
-    var injectClashMenu = function() {
-        try {
-            // 检查是否已经注入
-            if (window.clashMenuInjected) {
-                console.log('[Clash] 菜单已注入，跳过');
-                return;
-            }
-            
-            // 尝试通过多种方式注入菜单
-            var success = false;
-            
-            // 方法1: 尝试添加到现有菜单
-            if (typeof PVE !== 'undefined' && PVE.dc && PVE.dc.Menu) {
-                try {
-                    // 检查是否可以通过原型扩展
-                    if (PVE.dc.Menu.prototype) {
-                        console.log('[Clash] 通过原型扩展注入菜单...');
-                        success = injectViaPrototype();
-                    }
-                } catch (e) {
-                    console.warn('[Clash] 原型扩展失败:', e);
-                }
-            }
-            
-            // 方法2: 如果方法1失败，尝试直接注入到DOM
-            if (!success) {
-                console.log('[Clash] 尝试直接注入到DOM...');
-                success = injectViaDOM();
-            }
-            
-            if (success) {
-                window.clashMenuInjected = true;
-                console.log('[Clash] 菜单注入成功！');
-            } else {
-                console.log('[Clash] 菜单注入失败，将在下次重试');
-            }
-            
-        } catch (e) {
-            console.error('[Clash] 菜单注入过程中发生错误:', e);
-        }
-    };
-    
-    // 通过原型扩展注入菜单
-    var injectViaPrototype = function() {
-        try {
-            // 检查是否已经存在扩展
-            if (PVE.dc.Menu.prototype.clashMenuAdded) {
-                return true;
-            }
-            
-            // 保存原始方法
-            var originalInitComponent = PVE.dc.Menu.prototype.initComponent;
-            
-            // 扩展 initComponent 方法
-            PVE.dc.Menu.prototype.initComponent = function() {
-                var me = this;
-                
-                // 调用原始方法
-                if (originalInitComponent) {
-                    originalInitComponent.call(me);
-                }
-                
-                // 添加 Clash 菜单项
-                if (me.items && !me.clashMenuAdded) {
-                    me.items.push({
-                        text: 'Clash 控制',
-                        iconCls: 'fa fa-cloud',
-                        handler: function() {
-                            createClashWindow();
-                        }
-                    });
-                    me.clashMenuAdded = true;
-                    console.log('[Clash] 通过原型扩展成功添加菜单项');
-                }
-            };
-            
-            return true;
-        } catch (e) {
-            console.warn('[Clash] 原型扩展失败:', e);
-            return false;
-        }
-    };
-    
-    // 通过DOM直接注入菜单
-    var injectViaDOM = function() {
-        try {
-            // 查找可能的菜单容器
-            var menuContainers = [
-                '.x-toolbar-pve-toolbar',
-                '.pve-toolbar-bg',
-                '.x-toolbar-vertical',
-                '.x-docked-left'
-            ];
-            
-            var container = null;
-            for (var i = 0; i < menuContainers.length; i++) {
-                var selector = menuContainers[i];
-                container = document.querySelector(selector);
-                if (container) {
-                    console.log('[Clash] 找到菜单容器:', selector);
-                    break;
-                }
-            }
-            
-            if (!container) {
-                console.log('[Clash] 未找到菜单容器');
-                return false;
-            }
-            
-            // 创建 Clash 菜单项
-            var clashMenuItem = document.createElement('div');
-            clashMenuItem.className = 'clash-menu-item';
-            clashMenuItem.innerHTML = '<i class="fa fa-cloud"></i> Clash 控制';
-            clashMenuItem.style.cssText = `
-                padding: 8px 12px;
-                cursor: pointer;
-                color: #333;
-                border-bottom: 1px solid #e0e0e0;
-                transition: background-color 0.2s;
-            `;
-            
-            // 添加悬停效果
-            clashMenuItem.addEventListener('mouseenter', function() {
-                this.style.backgroundColor = '#f5f5f5';
-            });
-            
-            clashMenuItem.addEventListener('mouseleave', function() {
-                this.style.backgroundColor = 'transparent';
-            });
-            
-            // 添加点击事件
-            clashMenuItem.addEventListener('click', function() {
-                createClashWindow();
-            });
-            
-            // 插入到容器中
-            container.appendChild(clashMenuItem);
-            
-            console.log('[Clash] 通过DOM成功添加菜单项');
-            return true;
-            
-        } catch (e) {
-            console.warn('[Clash] DOM注入失败:', e);
-            return false;
-        }
-    };
-    
-    // 创建 Clash 窗口的函数
-    var createClashWindow = function() {
-        try {
-            var win = Ext.create('Ext.window.Window', {
-                title: 'Clash 控制面板',
-                width: 1400,
-                height: 900,
-                layout: 'fit',
-                items: [{
-                    xtype: 'pveClashView'
-                }],
-                maximizable: true,
-                resizable: true
-            });
-            win.show();
-        } catch (e) {
-            console.error('[Clash] 创建窗口失败:', e);
-            // 备用方案：使用简单的 alert
-            alert('Clash 控制面板功能暂时不可用，请检查控制台错误信息');
-        }
-    };
-    
-    // 启动等待
-    waitForPVE();
-    
-    // 备用注入策略
-    setTimeout(function() {
-        if (!window.clashMenuInjected) {
-            console.log('[Clash] 启动备用注入策略...');
-            injectClashMenu();
-        }
-    }, 3000);
-    
-    // 添加调试命令
-    window.clashDebugCommands = {
-        inject: function() {
-            console.log('[Clash] 手动触发菜单注入...');
-            return injectClashMenu();
-        },
-        
-        status: function() {
-            return {
-                injected: window.clashMenuInjected || false,
-                pveLoaded: typeof PVE !== 'undefined',
-                message: 'Clash 菜单注入状态检查完成'
-            };
-        },
-        
-        createWindow: function() {
-            createClashWindow();
-            return 'Clash 窗口创建命令已执行';
-        }
-    };
-    
-    console.log('[Clash] 插件加载完成！');
-    console.log('[Clash] 可用调试命令:');
-    console.log('[Clash]   - window.clashDebugCommands.inject() - 手动注入菜单');
-    console.log('[Clash]   - window.clashDebugCommands.status() - 检查状态');
-    console.log('[Clash]   - window.clashDebugCommands.createWindow() - 创建窗口');
 });
