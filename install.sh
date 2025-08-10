@@ -196,14 +196,21 @@ main() {
     check_system
 
     # 下载并运行安装脚本（传递版本和分支参数）
+    # 构建要传递的参数数组
+    local script_args=()
+    
     if [ -n "$branch_param" ]; then
-        # 如果指定了分支，只传递分支参数
-        download_and_run "-b" "$branch_param"
-    elif [ -n "$normalized_version" ]; then
-        # 如果指定了版本，传递版本参数
-        download_and_run "$normalized_version"
+        script_args+=("-b" "$branch_param")
+    fi
+    
+    if [ -n "$normalized_version" ] && [ "$normalized_version" != "latest" ]; then
+        script_args+=("$normalized_version")
+    fi
+    
+    # 调用 download_and_run 并传递参数数组
+    if [ ${#script_args[@]} -gt 0 ]; then
+        download_and_run "${script_args[@]}"
     else
-        # 默认情况，不传递任何参数
         download_and_run
     fi
 }
