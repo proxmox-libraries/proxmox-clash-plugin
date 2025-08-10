@@ -97,7 +97,18 @@ download_and_run() {
     
     # 运行安装脚本
     log_step "开始安装..."
-    "$install_script" "$@"
+    echo "执行安装脚本: $install_script"
+    echo "传递参数: $*"
+    
+    if "$install_script" "$@"; then
+        log_info "✅ 安装脚本执行成功"
+    else
+        local exit_code=$?
+        log_error "❌ 安装脚本执行失败，退出码: $exit_code"
+        log_error "请检查上面的错误信息"
+        rm -rf "$temp_dir"
+        exit $exit_code
+    fi
     
     # 清理临时文件
     rm -rf "$temp_dir"

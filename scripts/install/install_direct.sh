@@ -770,14 +770,33 @@ main() {
     echo "安装后验证: $([ "$VERIFY_AFTER_INSTALL" = true ] && echo "是" || echo "否")"
     echo ""
     
+    echo "开始执行安装步骤..."
+    
+    echo "步骤 1: 检查依赖..."
     check_dependencies
+    
+    echo "步骤 2: 下载文件..."
     download_files
+    
+    echo "步骤 3: 安装 API..."
     install_api
+    
+    echo "步骤 4: 安装 UI..."
     install_ui
+    
+    echo "步骤 5: 安装服务..."
     install_service
+    
+    echo "步骤 6: 下载 mihomo..."
     download_mihomo
+    
+    echo "步骤 7: 创建配置..."
     create_config
+    
+    echo "步骤 8: 创建链接..."
     create_links
+    
+    echo "步骤 9: 显示结果..."
     show_result
     
     # 安装后验证
