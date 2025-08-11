@@ -14,6 +14,7 @@ title: Proxmox Clash 插件文档
 - [快速配置]({{ site.baseurl }}/configuration/quick-start.md) - 快速上手指南
 - [透明代理配置]({{ site.baseurl }}/configuration/transparent-proxy.md) - 安全透明代理配置
 - [GitHub 镜像配置]({{ site.baseurl }}/installation/github-mirror.md) - 解决下载慢的问题
+- [模块化重构指南]({{ site.baseurl }}/migration-guide.md) - 从单文件脚本迁移到模块化架构
 
 ### 📖 用户指南
 - [版本管理]({{ site.baseurl }}/installation/version-management.md) - 版本管理功能详解
@@ -40,8 +41,11 @@ title: Proxmox Clash 插件文档
 ### 📁 脚本目录结构
 ```
 scripts/
-├── install/           # 安装相关脚本
-│   └── install.sh
+├── install/           # 🆕 模块化安装脚本
+│   ├── install.sh    # 主入口脚本（重构版）
+│   ├── functions/    # 功能模块目录
+│   ├── utils/        # 工具模块目录
+│   └── README.md     # 模块说明文档
 ├── management/        # 管理和维护脚本
 │   ├── upgrade.sh
 │   ├── version_manager.sh
@@ -58,8 +62,11 @@ scripts/
 # 一键安装（推荐）
 curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash
 
-# 直接脚本安装
+# 模块化安装脚本（重构版）
 curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install.sh | sudo bash
+
+# 支持选择性执行
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install.sh | sudo bash -s -- --skip dependencies,download
 ```
 
 ### 🔗 快捷命令
@@ -99,6 +106,10 @@ curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plug
 
 本文档会随着项目更新而持续维护。如果您发现文档有误或需要补充，欢迎提交 Issue 或 Pull Request。
 
+### 🔄 最新更新
+- **v1.2.0+**: 安装脚本已完成模块化重构，支持选择性执行和更好的维护性
+- 查看重构详情: [重构完成总结]({{ site.baseurl }}/refactoring-summary.md)
+
 ---
 
-**注意**: 本文档适用于 Proxmox Clash 插件 v1.0.0 及以上版本。
+**注意**: 本文档适用于 Proxmox Clash 插件 v1.0.0 及以上版本。v1.2.0+ 版本支持新的模块化安装架构。
