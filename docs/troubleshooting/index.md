@@ -7,371 +7,248 @@ title: 故障排除
 
 本指南将帮助您解决 Proxmox Clash 插件使用过程中遇到的常见问题。
 
-## 🔍 问题诊断
+## 🔍 快速诊断
 
-### 1. 服务状态检查
-
+### 一键诊断
 ```bash
-# 检查 clash-meta 服务状态
+# 运行完整诊断脚本
+sudo /opt/proxmox-clash/scripts/management/view_logs.sh -a
+
+# 验证安装完整性
+sudo /opt/proxmox-clash/scripts/utils/verify_installation.sh
+
+# 检查服务状态
+sudo systemctl status clash-meta --no-pager
+```
+
+### 基础检查
+```bash
+# 检查服务状态
 sudo systemctl status clash-meta
 
-# 检查服务是否启用
-sudo systemctl is-enabled clash-meta
+# 检查端口监听
+sudo netstat -tlnp | grep -E ':(7890|9090)'
 
-# 查看服务日志
-sudo journalctl -u clash-meta -f
-```
-
-### 2. 端口检查
-
-```bash
-# 检查端口监听状态
-sudo netstat -tlnp | grep clash
-sudo netstat -tlnp | grep 9090
-sudo netstat -tlnp | grep 7890
-
-# 检查防火墙规则
-sudo iptables -t nat -L PREROUTING
-sudo iptables -L INPUT
-```
-
-### 3. 配置文件检查
-
-```bash
 # 检查配置文件语法
-sudo /opt/proxmox-clash/clash-meta -t -d /opt/proxmox-clash/config
+sudo /opt/proxmox-clash/clash-meta -t -c /opt/proxmox-clash/config/config.yaml
 
-# 查看配置文件
-sudo cat /opt/proxmox-clash/config/config.yaml
-
-# 检查配置文件权限
-ls -la /opt/proxmox-clash/config/
+# 检查文件权限
+ls -la /opt/proxmox-clash/
 ```
 
 ## 🚨 常见问题
 
 ### 1. 服务无法启动
 
-#### 问题描述
-clash-meta 服务启动失败，状态显示为 failed。
-
-> **💡 提示**: 如果遇到服务安装问题，请参考 [服务安装修复指南](service-installation-fix.md)
-
-#### 解决方案
-
+#### 快速解决
 ```bash
-# 1. 检查配置文件语法
-sudo /opt/proxmox-clash/clash-meta -t -d /opt/proxmox-clash/config
+# 检查服务状态
+sudo systemctl status clash-meta
 
-# 2. 查看详细错误日志
-sudo journalctl -u clash-meta -n 50
+# 查看日志
+sudo journalctl -u clash-meta -f
 
-# 3. 检查端口占用
-sudo netstat -tlnp | grep :9090
-sudo netstat -tlnp | grep :7890
+# 检查配置文件语法
+sudo /opt/proxmox-clash/clash-meta -t -c /opt/proxmox-clash/config/config.yaml
 
-# 4. 检查文件权限
-sudo chown -R root:root /opt/proxmox-clash
-sudo chmod -R 755 /opt/proxmox-clash
+# 检查端口占用
+sudo netstat -tlnp | grep -E ':(7890|9090)'
 
-# 5. 重新启动服务
-sudo systemctl restart clash-meta
+# 检查文件权限
+sudo chown -R root:root /opt/proxmox-clash/
+sudo chmod +x /opt/proxmox-clash/clash-meta
 ```
 
-#### 常见原因
-- 配置文件语法错误
-- 端口被其他程序占用
-- 文件权限问题
-- 依赖库缺失
+#### 详细解决方案
+请参考 [服务安装修复指南](service-installation-fix.md)
 
 ### 2. Web UI 无法访问
 
-#### 问题描述
-在 Proxmox Web UI 中看不到 "Clash 控制" 菜单，或点击后无法打开。
-
-#### 解决方案
-
+#### 快速解决
 ```bash
-# 1. 检查 API 插件是否正确安装
+# 检查 API 插件
 ls -la /usr/share/perl5/PVE/API2/Clash.pm
 
-# 2. 检查前端插件是否正确安装
+# 检查前端插件
 ls -la /usr/share/pve-manager/ext6/pve-panel-clash.js
 
-# 3. 重启 Proxmox 服务
+# 重启 PVE 服务
 sudo systemctl restart pveproxy
-sudo systemctl restart pvedaemon
-
-# 4. 清除浏览器缓存
-# 在浏览器中按 Ctrl+Shift+R 强制刷新
-
-# 5. 检查浏览器控制台错误
-# 按 F12 打开开发者工具，查看 Console 标签页
 ```
-
-#### 常见原因
-- 插件文件未正确安装
-- Proxmox 服务未重启
-- 浏览器缓存问题
-- JavaScript 错误
 
 ### 3. 透明代理不工作
 
-#### 问题描述
-CT/VM 中的网络流量没有通过代理，直连访问。
-
-#### 解决方案
-
+#### 快速解决
 ```bash
-# 1. 检查透明代理状态
-sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh status
-
-# 2. 检查 TUN 接口
+# 检查 TUN 接口
 ip link show clash-tun
 
-# 3. 检查 iptables 规则
+# 检查 iptables 规则
 sudo iptables -t nat -L PREROUTING
 
-# 4. 重新配置透明代理
+# 检查透明代理状态
+sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh status
+
+# 重新配置透明代理
 sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh enable
-
-# 5. 检查网桥配置
-sudo ip link show vmbr0
-sudo ip link show vmbr1
-
-# 6. 测试代理连接
-curl -x http://127.0.0.1:7890 http://www.google.com
-
-# 7. 检查 DNS 配置
-nslookup google.com 127.0.0.1
 ```
 
-#### 常见原因
-- 透明代理未启用
-- iptables 规则未正确配置
-- 网桥配置问题
-- DNS 解析问题
-- 代理服务未正常运行
+### 4. 网络中断恢复
 
-### 4. 订阅更新失败
-
-#### 问题描述
-订阅更新时出现错误，无法获取代理节点。
-
-#### 解决方案
+如果启用透明代理后网络中断：
 
 ```bash
-# 1. 检查网络连接
-curl -I https://www.google.com
-
-# 2. 测试订阅 URL
-curl -L "您的订阅URL"
-
-# 3. 手动更新订阅
-sudo /opt/proxmox-clash/scripts/management/update_subscription.sh "订阅URL"
-
-# 4. 检查订阅文件
-ls -la /opt/proxmox-clash/config/
-cat /opt/proxmox-clash/config/config.yaml | head -20
-
-# 5. 重启服务
-sudo systemctl restart clash-meta
-```
-
-#### 常见原因
-- 网络连接问题
-- 订阅 URL 无效
-- 订阅格式不支持
-- 配置文件权限问题
-
-### 5. 性能问题
-
-#### 问题描述
-代理速度慢，延迟高，或 CPU/内存使用率过高。
-
-#### 解决方案
-
-```bash
-# 1. 检查系统资源使用
-htop
-free -h
-df -h
-
-# 2. 检查代理节点延迟
-# 在 Web UI 中测试节点延迟
-
-# 3. 优化配置文件
-sudo nano /opt/proxmox-clash/config/config.yaml
-
-# 4. 调整 DNS 配置
-# 使用更快的 DNS 服务器
-
-# 5. 检查日志中的错误
-sudo /opt/proxmox-clash/scripts/management/view_logs.sh -e
-```
-
-#### 常见原因
-- 代理节点质量差
-- DNS 解析慢
-- 系统资源不足
-- 配置不当
-
-### 6. 服务安装问题
-
-#### 问题描述
-在脚本安装过程中，`clash-meta.service` 文件没有被正确更新到系统目录，导致服务无法正常启动或配置不正确。
-
-> **💡 自动验证**: 从 v1.2.8 开始，安装和升级脚本已集成自动服务验证功能，无需手动操作。
-
-#### 解决方案
-
-```bash
-# 使用修复脚本（推荐）
-sudo /opt/proxmox-clash/scripts/utils/fix_service_installation.sh -a
-
-# 手动检查文件状态
-ls -la /opt/proxmox-clash/service/clash-meta.service
-ls -la /etc/systemd/system/clash-meta.service
-
-# 手动修复
-sudo cp /opt/proxmox-clash/service/clash-meta.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable clash-meta
-```
-
-> **📖 详细指南**: 请参考 [服务安装修复指南](service-installation-fix.md)
-
-#### 常见原因
-- 安装脚本权限不足
-- 文件复制失败
-- 服务文件内容不一致
-- systemd 未重新加载
-
-### 7. 网络中断恢复
-
-#### 问题描述
-启用透明代理后，Proxmox 主机或 CT/VM 网络中断，无法访问外网。
-
-#### 解决方案
-
-```bash
-# 方法1：停止 Clash 服务（推荐）
+# 方法1：停止 Clash 服务
 sudo systemctl stop clash-meta
 
 # 方法2：禁用透明代理
 sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh disable
 
-# 方法3：禁用 TUN 接口
-sudo ip link set dev clash-tun down
-
-# 方法4：清除 iptables 规则
+# 方法3：清除 iptables 规则
 sudo iptables -t nat -F PREROUTING
 sudo iptables -t mangle -F PREROUTING
 
-# 方法5：重启网络服务
+# 方法4：重启网络服务
 sudo systemctl restart networking
 ```
 
-#### 预防措施
-- 使用安全的配置文件（参考 [透明代理配置指南](../configuration/transparent-proxy.md)）
-- 确保代理组包含直连作为备选
-- 测试环境验证后再启用透明代理
-- 定期备份配置文件
-
-## 🔧 高级故障排除
-
-### 1. 日志分析
+### 5. 权限问题
 
 ```bash
-# 查看实时日志
-sudo /opt/proxmox-clash/scripts/management/view_logs.sh -f
+# 检查用户权限
+whoami
+groups
 
-# 查看错误日志
-sudo /opt/proxmox-clash/scripts/management/view_logs.sh -e
+# 确保用户有 sudo 权限
+sudo -l
+
+# 修复文件权限
+sudo chown -R root:root /opt/proxmox-clash/
+sudo chmod +x /opt/proxmox-clash/clash-meta
+sudo chmod 644 /opt/proxmox-clash/config/config.yaml
+```
+
+### 6. 订阅更新失败
+
+```bash
+# 检查网络连接
+curl -I https://www.google.com
+
+# 测试订阅 URL
+curl -I "YOUR_SUBSCRIPTION_URL"
+
+# 手动更新订阅
+sudo /opt/proxmox-clash/scripts/management/update_subscription.sh
+
+# 检查订阅文件
+ls -la /opt/proxmox-clash/config/
+```
+
+### 7. 版本管理问题
+
+```bash
+# 检查版本信息
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -c
+
+# 检查可用更新
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh -u
+
+# 清理版本缓存
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh --clear-cache
+
+# 强制刷新版本信息
+sudo /opt/proxmox-clash/scripts/management/version_manager.sh --refresh
+```
+
+### 8. 日志查看问题
+
+```bash
+# 查看插件日志
+sudo /opt/proxmox-clash/scripts/management/view_logs.sh
 
 # 查看服务日志
 sudo journalctl -u clash-meta -f
 
 # 查看系统日志
-sudo dmesg | tail -50
+sudo dmesg | grep -i clash
+
+# 清空日志文件
+sudo /opt/proxmox-clash/scripts/management/view_logs.sh -c
 ```
 
-### 2. 网络诊断
+### 9. 性能问题
 
 ```bash
-# 检查网络接口
-ip addr show
-
-# 检查路由表
-ip route show
-
-# 检查 DNS 解析
-nslookup google.com
-dig google.com
-
-# 检查网络连接
-ping -c 4 8.8.8.8
-traceroute google.com
-```
-
-### 3. 性能监控
-
-```bash
-# 监控系统资源
+# 检查系统资源使用
+top
 htop
-iotop
-nethogs
 
-# 监控网络连接
-ss -tuln
-netstat -i
+# 检查内存使用
+free -h
 
-# 监控代理流量
-# 在 Web UI 中查看流量统计
+# 检查磁盘空间
+df -h
+
+# 检查网络连接数
+ss -tuln | wc -l
 ```
 
-## 📞 获取帮助
+### 10. 完全重置
 
-### 1. 收集诊断信息
+如果遇到严重问题需要完全重置：
 
 ```bash
-# 生成诊断报告
-sudo /opt/proxmox-clash/scripts/diagnostic.sh
+# 停止服务
+sudo systemctl stop clash-meta
+sudo systemctl disable clash-meta
 
-# 收集系统信息
-uname -a
-cat /etc/os-release
-systemctl status clash-meta
+# 卸载插件
+sudo /opt/proxmox-clash/scripts/management/uninstall.sh
+
+# 清理残留文件
+sudo rm -rf /opt/proxmox-clash
+sudo rm -f /usr/share/perl5/PVE/API2/Clash.pm
+sudo rm -f /usr/share/pve-manager/ext6/pve-panel-clash.js
+sudo rm -f /etc/systemd/system/clash-meta.service
+
+# 重新加载 systemd
+sudo systemctl daemon-reload
+
+# 重新安装
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash
 ```
 
-### 2. 提交问题报告
+## 🔧 诊断工具
 
-在提交问题报告时，请包含以下信息：
+### 内置工具
+- **[服务验证工具](../../scripts/utils/service_validator.sh)** - 验证服务安装状态
+- **[安装验证工具](../../scripts/utils/verify_installation.sh)** - 验证安装完整性
+- **[服务修复工具](../../scripts/utils/fix_service_installation.sh)** - 修复服务安装问题
 
-- 系统版本和架构
-- Proxmox VE 版本
-- 插件版本
-- 错误日志
-- 复现步骤
-- 期望行为
-
-### 3. 社区支持
-
-- [GitHub Issues](https://github.com/proxmox-libraries/proxmox-clash-plugin/issues)
-- [GitHub Discussions](https://github.com/proxmox-libraries/proxmox-clash-plugin/discussions)
-- [文档反馈](https://github.com/proxmox-libraries/proxmox-clash-plugin/issues/new)
+### 日志工具
+- **[日志查看工具](../../scripts/management/view_logs.sh)** - 查看和管理插件日志
+- **systemd 日志** - `journalctl -u clash-meta -f`
+- **插件日志** - `/var/log/proxmox-clash.log`
 
 ## 📚 相关文档
 
-- [透明代理配置指南](../configuration/transparent-proxy.md) - 安全透明代理配置
-- [日志分析](logs.md) - 详细的日志分析指南
-- [性能优化](performance.md) - 性能调优指南
-- [配置管理](../configuration/README.md) - 配置问题解决
-- [安装指南](../installation/README.md) - 安装问题解决
+- **[使用方法](../usage.md)** - 详细的使用说明和操作指南
+- **[安全配置](../security.md)** - 安全最佳实践和配置模板
+- **[快速参考](../quick-reference.md)** - 常用命令和快速操作
+- **[脚本工具](../scripts/)** - 脚本使用说明和工具文档
 
-## 🔗 外部资源
+## 📞 获取帮助
 
-- [Clash.Meta 文档](https://docs.metacubex.one/)
-- [Proxmox VE 文档](https://pve.proxmox.com/wiki/Main_Page)
-- [iptables 文档](https://netfilter.org/documentation/)
-- [systemd 文档](https://systemd.io/)
+如果以上解决方案无法解决问题，请：
+
+1. 查看详细的错误日志
+2. 提交 GitHub Issue，包含：
+   - 错误描述
+   - 系统信息
+   - 错误日志
+   - 复现步骤
+3. 联系维护者
+
+---
+
+*最后更新: 2024-12-19*

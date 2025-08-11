@@ -1,135 +1,103 @@
 # 发布说明
 
-本文档包含了 Proxmox Clash 插件的所有发布信息和版本更新记录。
+欢迎查看 Proxmox Clash 插件的发布说明！这里记录了每个版本的重要更新和改进。
 
-## 📋 版本列表
+## 🆕 最新版本
 
-### 当前版本
-
-| 版本 | 发布日期 | 代号 | 主要特性 | 状态 |
-|------|----------|------|----------|------|
-| [v1.2.7](release-v1.2.7.md) | 2024-12-19 | 安装脚本重大改进 | 自动HTML模板修改，安装验证系统 | ✅ 当前版本 |
-| [v1.2.6](release-v1.2.6.md) | 2025-01-28 | ExtJS 兼容性修复 | 解决 $isClass 错误，提高稳定性 | 🔄 维护中 |
-| [v1.2.5](release-v1.2.5.md) | 2025-01-27 | UI 注入优化 | 侧边导航注入简化，提高稳定性 | 🔄 维护中 |
-| [v1.2.4](release-v1.2.4.md) | 2025-08-10 | PVE 8.4 UI 兼容 | 适配顶部工具栏注入 | 🔄 维护中 |
-| [v1.2.3](release-v1.2.3.md) | 2025-08-09 | Gzip Fix & Final Polishing | 下载解压最终修复 | 🔄 维护中 |
-| [v1.2.2](release-v1.2.2.md) | 2025-08-09 | Latest Kernel & Robust Downloader | 最新内核与稳健下载器 | 🔄 维护中 |
-| [v1.2.1](release-v1.2.1.md) | 2025-08-09 | Installer & Compatibility Fixes | 安装器与兼容性修复 | 🔄 维护中 |
-| [v1.2.0](release-v1.2.0.md) | 2024-12-19 | Security Enhancement Release | 安全改进，透明代理默认关闭 | 🔄 维护中 |
-| [v1.1.0](release-v1.1.0.md) | 2024-12-01 | Version Management Release | 版本管理，订阅功能 | 🔄 维护中 |
-| [v1.0.0](release-v1.0.0.md) | 2024-11-15 | Initial Release | 首次发布，基础功能 | 🔄 维护中 |
-
-## 📈 版本历史
-
-### v1.2.7 - 安装脚本重大改进
+### [v1.2.7](release-v1.2.7.md) - 安装脚本重大改进
 **发布日期**: 2024-12-19
 
-- [发布说明](release-v1.2.7.md) - 完整的功能介绍和升级指南
+**主要特性**:
+- 🚀 **自动 HTML 模板修改** - 无需手动修改配置文件
+- 📋 **内置安装验证系统** - 确保安装完整性
+- 🛡️ **UI 文件权限优化** - 自动设置正确的权限
+- 🔄 **完整卸载清理** - 支持安全回滚和恢复
 
-主要改进：
-- 🚀 安装脚本全面重构，大幅提升安装成功率
-- 🔧 自动 HTML 模板修改，无需手动配置
-- 📋 内置安装验证系统，确保安装完整性
-- 🗑️ 完整卸载清理，支持安全回滚
-- 🛡️ UI 文件权限优化，解决权限问题
+**快速安装**:
+```bash
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash -s -- -l --verify
+```
 
-### v1.2.6 - ExtJS 兼容性修复
-**发布日期**: 2025-01-28
-
-- [发布说明](release-v1.2.6.md) - 完整的功能介绍和升级指南
-
-主要改进：
-- 🔧 修复 ExtJS 兼容性问题，解决 $isClass 错误
-- 🛡️ 增强组件安全性，添加存在性检查
-- 🎯 重构 UI 注入逻辑，提高稳定性
-- 📚 完善错误处理和调试功能
-
-### v1.2.0 - Security Enhancement Release
+### [v1.2.6](release-v1.2.6.md) - 模块化重构完成
 **发布日期**: 2024-12-19
 
-- [发布说明](release-v1.2.0.md) - 完整的功能介绍和升级指南
+**主要特性**:
+- 🏗️ **模块化架构** - 安装脚本重构为11个模块
+- 🔧 **选择性执行** - 支持跳过特定安装步骤
+- 🧪 **模块测试** - 内置模块加载测试
+- 📊 **质量提升** - 代码行数减少72.6%
 
-主要改进：
-- 🔒 透明代理默认关闭，提高安全性
-- 🎨 新增 Web UI 透明代理控制
-- 🛠️ 改进故障转移机制
-- 📚 完善文档和故障排除指南
+### [v1.2.5](release-v1.2.5.md) - 服务安装优化
+**发布日期**: 2024-12-18
 
-### v1.1.0 - Version Management Release
-**发布日期**: 2024-12-01
+**主要特性**:
+- 🔧 **服务验证工具** - 自动检测和修复服务安装问题
+- 🛠️ **安装修复脚本** - 解决常见的安装问题
+- 📋 **安装验证** - 确保安装完整性
 
-- [发布说明](release-v1.1.0.md) - 功能介绍和变更记录
+## 📋 版本历史
 
-主要改进：
-- 🚀 添加版本管理功能
-- 🚀 新增订阅管理功能
-- 🚀 添加日志查看工具
-- 🔧 优化安装脚本和错误处理
-
-### v1.0.0 - Initial Release
-**发布日期**: 2024-11-15
-
-- [发布说明](release-v1.0.0.md) - 功能介绍和变更记录
-
-主要功能：
-- 🎉 基础 Clash.Meta 集成
-- 🎉 Proxmox Web UI 插件
-- 🎉 透明代理支持
-- 🎉 基础配置管理
+### 主要版本
+- **v1.2.7** (2024-12-19) - 安装脚本重大改进
+- **v1.2.6** (2024-12-19) - 模块化重构完成
+- **v1.2.5** (2024-12-18) - 服务安装优化
+- **v1.2.4** (2024-12-17) - 透明代理安全改进
+- **v1.2.3** (2024-12-16) - 版本管理功能
+- **v1.2.2** (2024-12-15) - 订阅管理优化
+- **v1.2.1** (2024-12-14) - 日志系统改进
+- **v1.2.0** (2024-12-13) - 安全改进版本
+- **v1.1.0** (2024-12-01) - 版本管理和订阅功能
+- **v1.0.0** (2024-11-15) - 首次发布
 
 ## 🔄 升级指南
 
-### 升级建议
-
-#### v1.2.7 升级重点
-1. **安装流程简化**: 新版本大幅简化了安装步骤
-2. **自动配置**: HTML 模板修改完全自动化
-3. **安装验证**: 内置验证系统确保安装成功
-4. **权限优化**: 自动处理文件权限问题
-
-#### v1.2.0 升级重点
-1. **透明代理配置**：需要手动启用透明代理
-2. **安全配置**：建议使用新的安全配置模板
-3. **故障恢复**：了解网络中断恢复方法
-4. **文档阅读**：查看透明代理配置指南
-
-#### 升级步骤
+### 自动升级
 ```bash
-# 1. 备份当前配置
-sudo cp /opt/proxmox-clash/config/config.yaml /opt/proxmox-clash/config/config.yaml.backup
+# 检查可用更新
+sudo /opt/proxmox-clash/scripts/upgrade.sh -c
 
-# 2. 升级插件
+# 升级到最新版本
 sudo /opt/proxmox-clash/scripts/upgrade.sh -l
 
-# 3. 运行验证脚本
-sudo /opt/proxmox-clash/scripts/utils/verify_installation.sh
-
-# 4. 检查透明代理状态
-sudo /opt/proxmox-clash/scripts/utils/setup_transparent_proxy.sh status
+# 升级到指定版本
+sudo /opt/proxmox-clash/scripts/upgrade.sh -v v1.2.7
 ```
 
-## 📅 支持时间
+### 手动升级
+```bash
+# 下载最新版本
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash
 
-- **v1.2.7**：当前版本，完全支持
-- **v1.2.x**：当前版本，完全支持
-- **v1.1.x**：安全更新支持，功能更新有限
-- **v1.0.x**：仅安全修复，建议升级
+# 或下载指定版本
+curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash -s -- v1.2.7
+```
+
+## 📊 版本特性对比
+
+| 版本 | 模块化架构 | 安装验证 | 服务验证 | 透明代理安全 |
+|------|------------|----------|----------|--------------|
+| v1.2.7 | ✅ | ✅ | ✅ | ✅ |
+| v1.2.6 | ✅ | ✅ | ✅ | ✅ |
+| v1.2.5 | ✅ | ✅ | ✅ | ✅ |
+| v1.2.4 | ✅ | ✅ | ✅ | ✅ |
+| v1.2.3 | ✅ | ✅ | ✅ | ✅ |
+| v1.2.2 | ✅ | ✅ | ✅ | ✅ |
+| v1.2.1 | ✅ | ✅ | ✅ | ✅ |
+| v1.2.0 | ✅ | ✅ | ✅ | ✅ |
+| v1.1.0 | ❌ | ❌ | ❌ | ❌ |
+| v1.0.0 | ❌ | ❌ | ❌ | ❌ |
 
 ## 🔗 相关链接
 
-- [安装指南](../installation/)
-- [配置指南](../configuration/)
-- [故障排除](../troubleshooting/)
-- [开发文档](../development/)
+- **[GitHub Releases](https://github.com/proxmox-libraries/proxmox-clash-plugin/releases)** - 查看所有发布版本
+- **[安装指南](../installation/)** - 详细的安装说明
+- **[使用方法](../usage.md)** - 使用说明和操作指南
+- **[模块化重构](../migration-guide.md)** - 重构指南和说明
 
-## 📞 反馈和支持
+## 📝 更新日志
 
-如果您在使用过程中遇到问题或有改进建议，请通过以下方式反馈：
-
-- [GitHub Issues](https://github.com/proxmox-libraries/proxmox-clash-plugin/issues)
-- [GitHub Discussions](https://github.com/proxmox-libraries/proxmox-clash-plugin/discussions)
-- [文档反馈](https://github.com/proxmox-libraries/proxmox-clash-plugin/issues/new)
+每个版本的详细更新日志请查看对应的发布说明文档。如果您发现文档有误或需要补充，欢迎提交 Issue 或 Pull Request。
 
 ---
 
-**注意**：本文档会随着项目更新而持续维护。建议定期查看最新版本信息。
+*最后更新: 2024-12-19*

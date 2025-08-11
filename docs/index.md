@@ -5,111 +5,64 @@ title: Proxmox Clash 插件文档
 
 # Proxmox Clash 插件文档
 
-欢迎使用 Proxmox Clash 插件文档！这是一个深度集成到 Proxmox VE Web UI 的 Clash.Meta (mihomo) 原生插件。
+欢迎使用 Proxmox Clash 原生插件文档！本插件专为 Proxmox VE 设计，提供安全透明代理和完整的命令行管理功能。
 
-## 📚 文档目录
+## 📚 文档导航
 
 ### 🚀 快速开始
-- [安装指南]({{ site.baseurl }}/installation/) - 详细的安装步骤和配置
-- [快速配置]({{ site.baseurl }}/configuration/quick-start.md) - 快速上手指南
-- [透明代理配置]({{ site.baseurl }}/configuration/transparent-proxy.md) - 安全透明代理配置
-- [GitHub 镜像配置]({{ site.baseurl }}/installation/github-mirror.md) - 解决下载慢的问题
-- [模块化重构指南]({{ site.baseurl }}/migration-guide.md) - 从单文件脚本迁移到模块化架构
+- **[功能特性](features.md)** - 插件的主要功能和技术特性
+- **[快速参考](quick-reference.md)** - 常用命令和快速操作指南
+- **[安装指南](installation/)** - 详细的安装说明和配置
 
-### 📖 用户指南
-- [版本管理]({{ site.baseurl }}/installation/version-management.md) - 版本管理功能详解
-- [升级指南]({{ site.baseurl }}/installation/upgrade.md) - 插件升级方法
-- [服务管理]({{ site.baseurl }}/installation/service.md) - systemd 服务配置
+### 📖 使用指南
+- **[使用方法](usage.md)** - 详细的使用说明和操作指南
+- **[配置管理](configuration/)** - 配置文件说明和配置指南
+- **[安全配置](security.md)** - 安全最佳实践和配置模板
 
-### 🔧 开发文档
-- [开发指南]({{ site.baseurl }}/development/) - 开发环境搭建和贡献指南
-- [API 文档]({{ site.baseurl }}/development/api.md) - API 接口说明
-- [UI 开发]({{ site.baseurl }}/development/ui.md) - 前端界面开发
-- [架构设计]({{ site.baseurl }}/development/architecture.md) - 系统架构说明
+### 🔧 技术文档
+- **[脚本工具](scripts/)** - 脚本使用说明和工具文档
+- **[开发文档](development/)** - 开发指南和架构说明
+- **[故障排除](troubleshooting/)** - 常见问题和解决方案
 
-### 🛠️ 运维文档
-- [故障排除]({{ site.baseurl }}/troubleshooting/) - 常见问题和解决方案
-- [脚本工具]({{ site.baseurl }}/scripts/) - 脚本使用和管理
-  - [安装脚本]({{ site.baseurl }}/scripts/install.md) - 安装脚本说明
-  - [管理脚本]({{ site.baseurl }}/scripts/management.md) - 管理脚本说明
-  - [工具脚本]({{ site.baseurl }}/scripts/utils.md) - 工具脚本说明
-
-## 📋 脚本工具
-
-项目提供了完整的脚本工具集，按功能分类组织：
-
-### 📁 脚本目录结构
-```
-scripts/
-├── install/           # 🆕 模块化安装脚本
-│   ├── install.sh    # 主入口脚本（重构版）
-│   ├── functions/    # 功能模块目录
-│   ├── utils/        # 工具模块目录
-│   └── README.md     # 模块说明文档
-├── management/        # 管理和维护脚本
-│   ├── upgrade.sh
-│   ├── version_manager.sh
-│   ├── uninstall.sh
-│   ├── update_subscription.sh
-│   └── view_logs.sh
-└── utils/            # 工具脚本
-    ├── setup_github_mirror.sh
-    └── setup_transparent_proxy.sh
-```
-
-### 🚀 快速安装
-```bash
-# 一键安装（推荐）
-curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash
-
-# 模块化安装脚本（重构版）
-curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install.sh | sudo bash
-
-# 支持选择性执行
-curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/scripts/install/install.sh | sudo bash -s -- --skip dependencies,download
-```
-
-### 🔗 快捷命令
-安装后，以下命令会被创建到 `/usr/local/bin/`：
-- `proxmox-clash-install` - 安装脚本
-- `proxmox-clash-upgrade` - 升级脚本
-- `proxmox-clash-uninstall` - 卸载脚本
+### 📋 其他文档
+- **[发布说明](releases/)** - 版本更新日志和发布说明
+- **[迁移指南](migration-guide.md)** - 从单文件脚本迁移到模块化架构
+- **[重构总结](refactoring-summary.md)** - 重构完成状态和成果总结
 
 ## 🎯 快速导航
 
 ### 新用户
-1. [安装指南]({{ site.baseurl }}/installation/) - 开始安装
-2. [快速配置]({{ site.baseurl }}/configuration/quick-start.md) - 基础配置
-3. [透明代理配置]({{ site.baseurl }}/configuration/transparent-proxy.md) - 安全透明代理设置
-4. [版本管理]({{ site.baseurl }}/installation/version-management.md) - 版本管理
+1. 查看 [功能特性](features.md) 了解插件能力
+2. 阅读 [安装指南](installation/) 进行安装
+3. 参考 [快速参考](quick-reference.md) 开始使用
 
-### 管理员
-1. [故障排除]({{ site.baseurl }}/troubleshooting/) - 问题解决
-2. [开发指南]({{ site.baseurl }}/development/) - 开发环境
+### 现有用户
+1. 查看 [使用方法](usage.md) 了解新功能
+2. 参考 [安全配置](security.md) 优化安全设置
+3. 浏览 [故障排除](troubleshooting/) 解决常见问题
 
 ### 开发者
-1. [开发指南]({{ site.baseurl }}/development/) - 开发环境
+1. 阅读 [开发文档](development/) 了解架构
+2. 查看 [脚本工具](scripts/) 了解工具使用
+3. 参考 [迁移指南](migration-guide.md) 了解重构内容
 
-## 📈 最新版本
+## 🔗 重要链接
 
-- 查看最新发布: [releases/]({{ site.baseurl }}/releases/)
-- 最新版本说明: [releases/release-v1.2.0.md]({{ site.baseurl }}/releases/release-v1.2.0.md)
-
-## 🔗 相关链接
-
-- [GitHub 仓库](https://github.com/proxmox-libraries/proxmox-clash-plugin)
-- [问题反馈](https://github.com/proxmox-libraries/proxmox-clash-plugin/issues)
-- [功能请求](https://github.com/proxmox-libraries/proxmox-clash-plugin/issues/new)
-- [贡献指南]({{ site.baseurl }}/development/#贡献指南)
+- **GitHub 仓库**: [proxmox-libraries/proxmox-clash-plugin](https://github.com/proxmox-libraries/proxmox-clash-plugin)
+- **最新版本**: [v1.2.0+](https://github.com/proxmox-libraries/proxmox-clash-plugin/releases/tag/v1.2.0)
+- **一键安装**: `curl -sSL https://raw.githubusercontent.com/proxmox-libraries/proxmox-clash-plugin/main/install.sh | sudo bash`
 
 ## 📝 文档更新
 
-本文档会随着项目更新而持续维护。如果您发现文档有误或需要补充，欢迎提交 Issue 或 Pull Request。
+本文档持续更新中，最新版本请查看 GitHub 仓库。如有问题或建议，欢迎提交 Issue 或 Pull Request。
 
-### 🔄 最新更新
-- **v1.2.0+**: 安装脚本已完成模块化重构，支持选择性执行和更好的维护性
-- 查看重构详情: [重构完成总结]({{ site.baseurl }}/refactoring-summary.md)
+## 🆕 最新更新
+
+- **模块化重构**: 安装脚本重构为11个模块，提升可维护性
+- **新功能**: 支持选择性执行、安装后验证、服务自动验证
+- **质量提升**: 代码行数减少72.6%，维护难度显著降低
+- **文档完善**: 新增功能特性、使用方法、安全配置等详细文档
 
 ---
 
-**注意**: 本文档适用于 Proxmox Clash 插件 v1.0.0 及以上版本。v1.2.0+ 版本支持新的模块化安装架构。
+*最后更新: 2024-12-19*
