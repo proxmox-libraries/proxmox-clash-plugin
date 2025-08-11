@@ -354,6 +354,35 @@ log_message "DEBUG" "跳过 UI 插件安装（已移除Web UI功能）"
         cp "$temp_dir/service/clash-meta.service" /etc/systemd/system/
         systemctl daemon-reload
         log_message "DEBUG" "更新服务文件"
+        
+        # 验证服务文件
+        log_message "INFO" "验证服务文件..."
+        
+        # 引用服务验证工具
+        if [ -f "$CLASH_DIR/scripts/utils/service_validator.sh" ]; then
+            source "$CLASH_DIR/scripts/utils/service_validator.sh"
+            if verify_service_installation "$temp_dir/service/clash-meta.service" "/etc/systemd/system/clash-meta.service"; then
+                log_message "INFO" "✅ 服务文件验证完成"
+            else
+                log_message "ERROR" "❌ 服务文件验证失败"
+                return 1
+            fi
+        else
+            log_message "WARN" "⚠️  服务验证工具不存在，使用基本验证..."
+            
+            if systemd-analyze verify /etc/systemd/system/clash-meta.service >/dev/null 2>&1; then
+                log_message "INFO" "✅ 服务文件语法正确"
+            else
+                log_message "ERROR" "❌ 服务文件语法错误"
+                return 1
+            fi
+            
+            # 确保服务已启用
+            if ! systemctl is-enabled clash-meta >/dev/null 2>&1; then
+                systemctl enable clash-meta
+                log_message "INFO" "✅ 服务已启用"
+            fi
+        fi
     fi
     
     # 更新版本号

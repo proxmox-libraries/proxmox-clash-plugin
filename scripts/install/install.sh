@@ -287,6 +287,65 @@ install_service() {
     fi
 }
 
+# 验证服务安装
+verify_service_installation() {
+    log_step "验证服务安装状态..."
+    
+    # 引用服务验证工具
+    if [ -f "$INSTALL_DIR/scripts/utils/service_validator.sh" ]; then
+        source "$INSTALL_DIR/scripts/utils/service_validator.sh"
+        verify_service_installation
+    else
+        log_warn "⚠️  服务验证工具不存在，使用内置验证..."
+        
+        local source_file="$INSTALL_DIR/service/clash-meta.service"
+        local system_file="/etc/systemd/system/clash-meta.service"
+        
+        # 检查源文件是否存在
+        if [ ! -f "$source_file" ]; then
+            log_error "❌ 源服务文件不存在: $source_file"
+            return 1
+        fi
+        
+        # 检查系统服务文件是否存在
+        if [ ! -f "$system_file" ]; then
+            log_error "❌ 系统服务文件不存在: $system_file"
+            return 1
+        fi
+        
+        # 比较文件内容
+        if diff "$source_file" "$system_file" >/dev/null 2>&1; then
+            log_info "✅ 服务文件内容一致"
+        else
+            log_warn "⚠️  服务文件内容不一致，正在修复..."
+            sudo cp "$source_file" "$system_file"
+            sudo systemctl daemon-reload
+            log_info "✅ 服务文件已修复"
+        fi
+        
+        # 验证服务文件语法
+        if systemd-analyze verify "$system_file" >/dev/null 2>&1; then
+            log_info "✅ 服务文件语法正确"
+        else
+            log_error "❌ 服务文件语法错误"
+            return 1
+        fi
+        
+        # 检查服务是否已启用
+        if systemctl is-enabled clash-meta >/dev/null 2>&1; then
+            log_info "✅ 服务已启用"
+        else
+            log_warn "⚠️  服务未启用，正在启用..."
+            sudo systemctl enable clash-meta
+            log_info "✅ 服务已启用"
+        fi
+        
+        log_info "✅ 服务安装验证完成"
+    fi
+    
+    return 0
+}
+
 # 下载 mihomo
 download_mihomo() {
     log_step "下载 Clash.Meta (mihomo)..."
@@ -675,16 +734,19 @@ main() {
     echo "步骤 5: 安装服务..."
     install_service
     
-    echo "步骤 6: 下载 mihomo..."
+    echo "步骤 6: 验证服务安装..."
+    verify_service_installation
+    
+    echo "步骤 7: 下载 mihomo..."
     download_mihomo
     
-    echo "步骤 7: 创建配置..."
+    echo "步骤 8: 创建配置..."
     create_config
     
-    echo "步骤 8: 创建链接..."
+    echo "步骤 9: 创建链接..."
     create_links
     
-    echo "步骤 9: 显示结果..."
+    echo "步骤 10: 显示结果..."
     show_result
     
     # 安装后验证

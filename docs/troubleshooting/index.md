@@ -55,6 +55,8 @@ ls -la /opt/proxmox-clash/config/
 #### 问题描述
 clash-meta 服务启动失败，状态显示为 failed。
 
+> **💡 提示**: 如果遇到服务安装问题，请参考 [服务安装修复指南](service-installation-fix.md)
+
 #### 解决方案
 
 ```bash
@@ -214,7 +216,38 @@ sudo /opt/proxmox-clash/scripts/management/view_logs.sh -e
 - 系统资源不足
 - 配置不当
 
-### 6. 网络中断恢复
+### 6. 服务安装问题
+
+#### 问题描述
+在脚本安装过程中，`clash-meta.service` 文件没有被正确更新到系统目录，导致服务无法正常启动或配置不正确。
+
+> **💡 自动验证**: 从 v1.2.8 开始，安装和升级脚本已集成自动服务验证功能，无需手动操作。
+
+#### 解决方案
+
+```bash
+# 使用修复脚本（推荐）
+sudo /opt/proxmox-clash/scripts/utils/fix_service_installation.sh -a
+
+# 手动检查文件状态
+ls -la /opt/proxmox-clash/service/clash-meta.service
+ls -la /etc/systemd/system/clash-meta.service
+
+# 手动修复
+sudo cp /opt/proxmox-clash/service/clash-meta.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable clash-meta
+```
+
+> **📖 详细指南**: 请参考 [服务安装修复指南](service-installation-fix.md)
+
+#### 常见原因
+- 安装脚本权限不足
+- 文件复制失败
+- 服务文件内容不一致
+- systemd 未重新加载
+
+### 7. 网络中断恢复
 
 #### 问题描述
 启用透明代理后，Proxmox 主机或 CT/VM 网络中断，无法访问外网。
