@@ -4,6 +4,7 @@ import { loadState, saveState } from '../misc/storage';
 import { debounce, trimTrailingSlash } from '../misc/utils';
 import { fetchConfigs } from './configs';
 import { closeModal } from './modals';
+import { getDefaultClashURL, forceLocalhost } from '../misc/config';
 
 export const getClashAPIConfig = (s: State) => {
   const idx = s.app.selectedClashAPIConfigIndex;
@@ -150,7 +151,7 @@ export function updateCollapsibleIsOpen(prefix: string, name: string, v: boolean
 }
 
 const defaultClashAPIConfig = {
-  baseURL: document.getElementById('app')?.getAttribute('data-base-url') ?? 'http://127.0.0.1:9090',
+  baseURL: getDefaultClashURL(),
   secret: '',
   addedAt: 0,
 };
@@ -192,19 +193,28 @@ export function initialState() {
   const conf = s.clashAPIConfigs[s.selectedClashAPIConfigIndex];
   if (conf) {
     const url = new URL(conf.baseURL);
+    
+    // 强制使用本机地址，忽略查询参数中的hostname
     if (query.hostname) {
       if (query.hostname.indexOf('http') === 0) {
-        url.href = decodeURIComponent(query.hostname);
+        const queryUrl = new URL(decodeURIComponent(query.hostname));
+        url.protocol = queryUrl.protocol;
+        url.port = queryUrl.port;
+        // 保持使用127.0.0.1作为hostname
+        url.hostname = '127.0.0.1';
       } else {
-        url.hostname = query.hostname;
+        // 只更新端口，保持hostname为127.0.0.1
+        url.hostname = '127.0.0.1';
       }
     }
+    
     if (query.port) {
       url.port = query.port;
     }
+    
     // url.href is a stringifier and it appends a trailing slash
     // that is not we want
-    conf.baseURL = trimTrailingSlash(url.href);
+    conf.baseURL = trimTrailingSlash(forceLocalhost(url.href));
     if (query.secret) {
       conf.secret = query.secret;
     }

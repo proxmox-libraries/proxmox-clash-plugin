@@ -45,4 +45,11 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ],
+  // 环境变量配置
+  envPrefix: 'VITE_',
+  // 开发服务器配置
+  server: {
+    host: '0.0.0.0',
+    port: 3000,
+  },
 }));

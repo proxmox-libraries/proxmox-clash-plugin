@@ -5,6 +5,7 @@ import { BackendList } from '~/components/BackendList';
 import { addClashAPIConfig, getClashAPIConfig } from '~/store/app';
 import { State } from '~/store/types';
 import { ClashAPIConfig } from '~/types';
+import { forceLocalhost } from '~/misc/config';
 
 import s0 from './APIConfig.module.scss';
 import Button from './Button';
@@ -23,6 +24,7 @@ function APIConfig({ dispatch }) {
   const [baseURL, setBaseURL] = useState('');
   const [secret, setSecret] = useState('');
   const [errMsg, setErrMsg] = useState('');
+  const [useLocalhost, setUseLocalhost] = useState(true);
 
   const userTouchedFlagRef = useRef(false);
   const contentEl = useRef(null);
@@ -59,6 +61,12 @@ function APIConfig({ dispatch }) {
         unconfirmedBaseURL = `${window.location.protocol}//${unconfirmedBaseURL}`;
       }
     }
+    
+    // 如果选择使用本机地址，则强制使用127.0.0.1
+    if (useLocalhost && unconfirmedBaseURL) {
+      unconfirmedBaseURL = forceLocalhost(unconfirmedBaseURL);
+    }
+    
     verify({ baseURL: unconfirmedBaseURL, secret }).then((ret) => {
       if (ret[0] !== Ok) {
         setErrMsg(ret[1]);
@@ -66,7 +74,7 @@ function APIConfig({ dispatch }) {
         dispatch(addClashAPIConfig({ baseURL: unconfirmedBaseURL, secret }));
       }
     });
-  }, [baseURL, secret, dispatch]);
+  }, [baseURL, secret, dispatch, useLocalhost]);
 
   const handleContentOnKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -88,13 +96,18 @@ function APIConfig({ dispatch }) {
     const res = await fetch('/');
     res.json().then((data) => {
       if (data['hello'] === 'clash') {
-        setBaseURL(window.location.origin);
+        // 如果选择使用本机地址，则使用127.0.0.1而不是当前origin
+        if (useLocalhost) {
+          setBaseURL(forceLocalhost(window.location.origin));
+        } else {
+          setBaseURL(window.location.origin);
+        }
       }
     });
   };
   useEffect(() => {
     detectApiServer();
-  }, []);
+  }, [useLocalhost]);
 
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
@@ -123,6 +136,17 @@ function APIConfig({ dispatch }) {
             type="text"
             onChange={handleInputOnChange}
           />
+          <div className={s0.checkboxContainer}>
+            <input
+              type="checkbox"
+              id="useLocalhost"
+              checked={useLocalhost}
+              onChange={(e) => setUseLocalhost(e.target.checked)}
+            />
+            <label htmlFor="useLocalhost">
+              强制使用本机地址 (127.0.0.1)
+            </label>
+          </div>
         </div>
       </div>
       <div className={s0.error}>{errMsg ? errMsg : null}</div>
