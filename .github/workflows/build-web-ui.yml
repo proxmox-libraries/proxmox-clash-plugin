@@ -1,0 +1,144 @@
+name: Build Web UI and Upload to Release
+
+on:
+  # 当创建新的 release 时触发
+  release:
+    types: [published, created]
+  
+  # 手动触发
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '版本号 (例如: v1.2.8)'
+        required: true
+        default: 'v1.2.8'
+
+jobs:
+  build-web-ui:
+    name: Build Web UI
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: web-ui/package-lock.json
+          
+      - name: Check package files
+        working-directory: ./web-ui
+        run: |
+          echo "Checking package files..."
+          if [ -f "package-lock.json" ]; then
+            echo "package-lock.json found, using npm ci"
+            echo "use_npm_ci=true" >> $GITHUB_OUTPUT
+          else
+            echo "package-lock.json not found, using npm install"
+            echo "use_npm_ci=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Install dependencies
+        working-directory: ./web-ui
+        run: |
+          echo "Installing dependencies..."
+          if [ "${{ steps.package_check.outputs.use_npm_ci }}" = "true" ]; then
+            npm ci
+          else
+            npm install
+          fi
+          
+      - name: Get version info
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Build web UI
+        working-directory: ./web-ui
+        run: |
+          echo "Building web UI..."
+          npm run build
+          
+      - name: Verify build output
+        working-directory: ./web-ui
+        run: |
+          if [ ! -d "public" ]; then
+            echo "Error: Build output directory 'public' not found!"
+            exit 1
+          fi
+          echo "Build output verified successfully"
+          ls -la public/
+          
+      - name: Create dist archive (tar.gz)
+        run: |
+          echo "Creating tar.gz archive..."
+          cd web-ui/public
+          tar -czf ../../web-ui-dist.tar.gz .
+          echo "Archive created: web-ui-dist.tar.gz"
+          
+      - name: Create dist archive (zip)
+        run: |
+          echo "Creating zip archive..."
+          cd web-ui/public
+          zip -r ../../web-ui-dist.zip .
+          echo "Archive created: web-ui-dist.zip"
+          
+      - name: Verify archives
+        run: |
+          echo "Verifying archives..."
+          ls -la web-ui-dist.*
+          echo "Archive sizes:"
+          du -h web-ui-dist.tar.gz web-ui-dist.zip
+          
+      - name: Upload tar.gz to Release
+        if: github.event_name == 'release'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          url: ${{ github.event.release.upload_url }}
+          asset_path: ./web-ui-dist.tar.gz
+          asset_name: web-ui-${{ steps.version.outputs.version }}.tar.gz
+          asset_content_type: application/gzip
+          
+      - name: Upload ZIP to Release
+        if: github.event_name == 'release'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          url: ${{ github.event.release.upload_url }}
+          asset_path: ./web-ui-dist.zip
+          asset_name: web-ui-${{ steps.version.outputs.version }}.zip
+          asset_content_type: application/zip
+          
+      - name: Upload as workflow artifacts (manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-ui-build-${{ steps.version.outputs.version }}
+          path: |
+            web-ui-dist.tar.gz
+            web-ui-dist.zip
+          retention-days: 30
+          
+      - name: Cleanup
+        run: |
+          echo "Cleaning up temporary files..."
+          rm -f web-ui-dist.tar.gz
+          rm -f web-ui-dist.zip
+          
+      - name: Build summary
+        run: |
+          echo "🎉 Web UI build completed successfully!"
+          echo "Version: ${{ steps.version.outputs.version }}"
+          echo "Build artifacts created and uploaded"
