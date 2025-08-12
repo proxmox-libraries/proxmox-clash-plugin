@@ -92,6 +92,13 @@ load_modules() {
         echo "错误: 找不到结果显示模块: $script_dir/functions/result_display.sh"
         exit 1
     fi
+    
+    if [ -f "$script_dir/functions/web_ui_installer.sh" ]; then
+        source "$script_dir/functions/web_ui_installer.sh"
+    else
+        echo "错误: 找不到 Web UI 安装模块: $script_dir/functions/web_ui_installer.sh"
+        exit 1
+    fi
 }
 
 # 主函数
@@ -194,7 +201,27 @@ main() {
         ((step_num++))
     fi
     
-    # 步骤 9: 显示结果
+    # 步骤 9: 安装 Web UI
+    if ! should_skip_step "web-ui"; then
+        echo "步骤 $step_num: 安装 Web UI..."
+        install_web_ui "latest"
+        ((step_num++))
+    else
+        echo "步骤 $step_num: 跳过 Web UI 安装..."
+        ((step_num++))
+    fi
+    
+    # 步骤 10: 配置 Nginx
+    if ! should_skip_step "nginx"; then
+        echo "步骤 $step_num: 配置 Nginx..."
+        configure_nginx
+        ((step_num++))
+    else
+        echo "步骤 $step_num: 跳过 Nginx 配置..."
+        ((step_num++))
+    fi
+    
+    # 步骤 11: 显示结果
     echo "步骤 $step_num: 显示结果..."
     show_result
     
